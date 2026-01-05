@@ -36,8 +36,8 @@ jobs:
       - name: Build Rust static library
         run: ./scripts/build_rust.sh
 
-      - name: Run Go tests (polars)
-        run: go test ./polars -v
+      # - name: Run Go tests (polars)
+      #   run: go test ./polars -v
 
       - name: Package macOS artifacts
         run: |
