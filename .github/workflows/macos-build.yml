@@ -1,0 +1,53 @@
+name: macos-build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    runs-on: macos-14
+    env:
+      CGO_ENABLED: 1
+      CGO_LDFLAGS: -w
+      MACOSX_DEPLOYMENT_TARGET: "15.0"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin
+
+      - name: Prepare lib directory
+        run: mkdir -p lib
+
+      - name: Build Rust static library
+        run: ./scripts/build_rust.sh
+
+      - name: Run Go tests (polars)
+        run: go test ./polars -v
+
+      - name: Package macOS artifacts
+        run: |
+          tar -czf firn-macos-arm64.tar.gz \
+            lib/libfirn_darwin_arm64.a \
+            polars/firn.h \
+            README.md
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firn-macos-arm64
+          path: firn-macos-arm64.tar.gz
