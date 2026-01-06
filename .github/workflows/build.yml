@@ -90,10 +90,10 @@ jobs:
       - name: Build Rust static library
         run: ./scripts/build_rust.sh
 
-      - name: Build Go binary
-        run: |
-          mkdir -p dist
-          go build -trimpath -ldflags "-s -w" -o "dist/${{ matrix.bin-name }}" .
+    #   - name: Build Go binary
+    #     run: |
+    #       mkdir -p dist
+    #       go build -trimpath -ldflags "-s -w" -o "dist/${{ matrix.bin-name }}" .
 
       - name: Package (binary only)
         run: |
