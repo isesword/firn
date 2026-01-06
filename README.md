@@ -84,6 +84,11 @@ While [SIMBA](https://github.com/miretskiy/simba) provides ultra-fast FFI for si
 
 ## 🚀 **Quick Start**
 
+### Configure cgo linker search path
+```shell
+export CGO_LDFLAGS="-L/path/to/libs"
+```
+
 ### Basic DataFrame Operations
 ```go
 package main
