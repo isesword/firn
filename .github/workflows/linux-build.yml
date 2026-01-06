@@ -1,4 +1,4 @@
-# name: macos-build
+# name: linux-build
 
 # on:
 #   push:
@@ -8,12 +8,11 @@
 #   workflow_dispatch:
 
 # jobs:
-#   build-macos:
-#     runs-on: macos-14
+#   build-linux:
+#     runs-on: ubuntu-22.04
 #     env:
 #       CGO_ENABLED: 1
 #       CGO_LDFLAGS: -w
-#       MACOSX_DEPLOYMENT_TARGET: "15.0"
 #     steps:
 #       - name: Checkout
 #         uses: actions/checkout@v4
@@ -29,7 +28,7 @@
 #       - name: Set up Rust
 #         uses: dtolnay/rust-toolchain@stable
 #         with:
-#           targets: aarch64-apple-darwin
+#           targets: x86_64-unknown-linux-gnu
 
 #       - name: Cache cargo registry
 #         uses: actions/cache@v4
@@ -58,15 +57,15 @@
 #       # - name: Run Go tests (polars)
 #       #   run: go test ./polars -v
 
-#       - name: Package macOS artifacts
+#       - name: Package Linux artifacts
 #         run: |
-#           tar -czf firn-macos-arm64.tar.gz \
-#             lib/libfirn_darwin_arm64.a \
+#           tar -czf firn-linux-amd64.tar.gz \
+#             lib/libfirn_linux_amd64.a \
 #             polars/firn.h \
 #             README.md
 
-#       - name: Upload macOS artifact
+#       - name: Upload Linux artifact
 #         uses: actions/upload-artifact@v4
 #         with:
-#           name: firn-macos-arm64
-#           path: firn-macos-arm64.tar.gz
+#           name: firn-linux-amd64
+#           path: firn-linux-amd64.tar.gz
