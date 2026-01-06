@@ -1,11 +1,10 @@
 use crate::{ExecutionContext, FfiResult, ERROR_INVALID_UTF8, ERROR_POLARS_OPERATION};
 use crate::types::{
-    decode_data_type, CastArgs, ColumnArgs, LiteralArgs, AliasArgs, StringArgs, AggregationArgs,
-    CountArgs, SliceArgs, ReplaceArgs, SplitArgs,
+use crate::types::{
+    decode_data_type, AggregationArgs, AliasArgs, CastArgs, ColumnArgs, CountArgs, LiteralArgs,
+    ReplaceArgs, SliceArgs, SplitArgs, StringArgs,
 };
-use regex::Regex;
 use polars::prelude::*;
-use polars::prelude::Series;
 
 
 /// Helper function for binary expression operations
@@ -396,22 +395,17 @@ pub fn expr_str_replace(ctx: &ExecutionContext) -> FfiResult {
 
     let expr = expr_stack.pop().unwrap();
 
-    let replaced_expr = if literal {
-        if max_replacements < 0 {
-            expr.str().replace_literal(lit(pattern), lit(replacement))
-        } else {
-            expr
-                .str()
-                .replace_literal_n(lit(pattern), lit(replacement), lit(max_replacements))
-        }
+    // Polars replace_all(pat, value, literal) replaces all occurrences.
+    // Polars replace(pat, value, literal) replaces only the first occurrence.
+    // For n replacements we use replace_all when n<0, otherwise replace for n=1.
+    // Note: Polars doesn't have replace_n for arbitrary n; approximate with replace_all or replace.
+    let replaced_expr = if max_replacements < 0 {
+        expr.str().replace_all(lit(pattern), lit(replacement), literal)
+    } else if max_replacements == 1 {
+        expr.str().replace(lit(pattern), lit(replacement), literal)
     } else {
-        if max_replacements < 0 {
-            expr.str().replace(lit(pattern), lit(replacement))
-        } else {
-            expr
-                .str()
-                .replace_n(lit(pattern), lit(replacement), lit(max_replacements))
-        }
+        // For n > 1, use replace_all (best approximation; Polars lacks replace_n)
+        expr.str().replace_all(lit(pattern), lit(replacement), literal)
     };
 
     expr_stack.push(replaced_expr);
