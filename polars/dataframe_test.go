@@ -389,7 +389,6 @@ func TestExpressions(t *testing.T) {
 		).Collect()
 		require.NoError(t, err)
 		defer result.Release()
-
 		// Golden test: strip chars operations
 		// StrStripChars removes matching chars from both ends
 		// StrStripCharsStart removes from start only
@@ -403,8 +402,8 @@ func TestExpressions(t *testing.T) {
 │ Alice   ┆ lic         ┆ lice        ┆ Alic      │
 │ Bob     ┆ Bob         ┆ ob          ┆ Bob       │
 │ Charlie ┆ Charli      ┆ harlie      ┆ Charl     │
-│ Diana   ┆ Dian        ┆ iana        ┆ Dian      │
-│ Eve     ┆ v           ┆ ve          ┆ Ev        │
+│ Diana   ┆ Diana       ┆ iana        ┆ Dian      │
+│ Eve     ┆ Ev          ┆ ve          ┆ Ev        │
 │ Frank   ┆ Frank       ┆ rank        ┆ Frank     │
 │ Grace   ┆ Grac        ┆ race        ┆ Grac      │
 └─────────┴─────────────┴─────────────┴───────────┘`
@@ -497,10 +496,10 @@ func TestSQLExpressions(t *testing.T) {
 	t.Run("SelectWithMixedSQLAndFluent", func(t *testing.T) {
 		df := ReadCSV("../testdata/sample.csv")
 		result, err := df.Select(
-			"name",                         // SQL string (column name)
-			"salary * 1.1 as bonus_salary", // SQL expression with alias
+			"name",                                     // SQL string (column name)
+			"salary * 1.1 as bonus_salary",             // SQL expression with alias
 			Col("age").Add(Lit(5)).Alias("age_plus_5"), // Fluent API
-			"department", // SQL string (column name)
+			"department",                               // SQL string (column name)
 		).Collect()
 		require.NoError(t, err)
 		defer result.Release()
@@ -613,10 +612,10 @@ func TestSQLExpressions(t *testing.T) {
 				"UPPER(name) as name_upper",                    // SQL function
 			).
 			Select(
-				"name", // SQL column
+				"name",                                       // SQL column
 				Col("adjusted_salary").Alias("final_salary"), // Fluent (referencing SQL-created column)
-				"is_experienced", // SQL column (referencing fluent-created column)
-				"department",     // SQL column
+				"is_experienced",                             // SQL column (referencing fluent-created column)
+				"department",                                 // SQL column
 			).
 			Filter(
 				Col("final_salary").Gt(Lit(60000)).And( // Fluent filter
@@ -646,7 +645,7 @@ func TestSQLExpressions(t *testing.T) {
 		df := ReadCSV("../testdata/sample.csv")
 		result, err := df.
 			GroupBy(
-				"department", // SQL column
+				"department",                              // SQL column
 				Col("age").Gt(Lit(30)).Alias("is_senior"), // Fluent boolean grouping
 			).
 			Agg(
