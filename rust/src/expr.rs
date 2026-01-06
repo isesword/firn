@@ -396,39 +396,25 @@ pub fn expr_str_replace(ctx: &ExecutionContext) -> FfiResult {
 
     let expr = expr_stack.pop().unwrap();
 
-    let result_expr = expr.map(
-        move |s: Series| {
-            let ca = s.utf8()?;
+    let replaced_expr = if literal {
+        if max_replacements < 0 {
+            expr.str().replace_literal(lit(pattern), lit(replacement))
+        } else {
+            expr
+                .str()
+                .replace_literal_n(lit(pattern), lit(replacement), lit(max_replacements))
+        }
+    } else {
+        if max_replacements < 0 {
+            expr.str().replace(lit(pattern), lit(replacement))
+        } else {
+            expr
+                .str()
+                .replace_n(lit(pattern), lit(replacement), lit(max_replacements))
+        }
+    };
 
-            if literal {
-                let pat = pattern.clone();
-                let rep = replacement.clone();
-                let out = ca.apply(|opt: Option<&str>| opt.map(|v: &str| {
-                    if max_replacements < 0 {
-                        v.replace(&pat, &rep)
-                    } else {
-                        v.replacen(&pat, &rep, max_replacements as usize)
-                    }
-                }));
-                Ok(out.into_series())
-            } else {
-                let re = Regex::new(&pattern)
-                    .map_err(|e: regex::Error| PolarsError::ComputeError(e.to_string().into()))?;
-                let rep = replacement.clone();
-                let out = ca.apply(|opt: Option<&str>| opt.map(|v: &str| {
-                    if max_replacements < 0 {
-                        re.replace_all(v, rep.as_str()).into_owned()
-                    } else {
-                        re.replacen(v, max_replacements as usize, rep.as_str()).into_owned()
-                    }
-                }));
-                Ok(out.into_series())
-            }
-        },
-        GetOutput::from_type(DataType::String),
-    );
-
-    expr_stack.push(result_expr);
+    expr_stack.push(replaced_expr);
     FfiResult::success_no_handle()
 }
 
