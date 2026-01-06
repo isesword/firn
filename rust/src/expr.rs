@@ -391,13 +391,13 @@ pub fn expr_str_replace(ctx: &ExecutionContext) -> FfiResult {
     let expr = expr_stack.pop().unwrap();
 
     let result_expr = expr.map(
-        move |s| {
+        move |s: Series| {
             let ca = s.utf8()?;
 
             if literal {
                 let pat = pattern.clone();
                 let rep = replacement.clone();
-                let out = ca.apply(|opt| opt.map(|v| {
+                let out = ca.apply(|opt: Option<&str>| opt.map(|v: &str| {
                     if max_replacements < 0 {
                         v.replace(&pat, &rep)
                     } else {
@@ -407,9 +407,9 @@ pub fn expr_str_replace(ctx: &ExecutionContext) -> FfiResult {
                 Ok(out.into_series())
             } else {
                 let re = Regex::new(&pattern)
-                    .map_err(|e| PolarsError::ComputeError(e.to_string().into()))?;
+                    .map_err(|e: regex::Error| PolarsError::ComputeError(e.to_string().into()))?;
                 let rep = replacement.clone();
-                let out = ca.apply(|opt| opt.map(|v| {
+                let out = ca.apply(|opt: Option<&str>| opt.map(|v: &str| {
                     if max_replacements < 0 {
                         re.replace_all(v, rep.as_str()).into_owned()
                     } else {
@@ -419,7 +419,7 @@ pub fn expr_str_replace(ctx: &ExecutionContext) -> FfiResult {
                 Ok(out.into_series())
             }
         },
-        GetOutput::from_type(DataType::Utf8),
+        GetOutput::from_type(DataType::String),
     );
 
     expr_stack.push(result_expr);
