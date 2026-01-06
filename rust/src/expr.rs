@@ -5,6 +5,7 @@ use crate::types::{
 };
 use regex::Regex;
 use polars::prelude::*;
+use polars::prelude::Series;
 
 
 /// Helper function for binary expression operations
@@ -356,17 +357,14 @@ pub fn expr_str_slice(ctx: &ExecutionContext) -> FfiResult {
 
     let expr = expr_stack.pop().unwrap();
 
-    // Polars string slice expects Expr offsets/lengths.
-
-
-        None
+    // Polars string slice expects Expr offsets/lengths. Use a very large length to represent "to the end".
+    let length_expr = if args.length < 0 {
+        lit(i64::MAX)
     } else {
-        Some(lit(args.length))
-        Some(lit(args.length as i64))
+        lit(args.length as i64)
+    };
 
-    let slice_expr = expr
-        .str()
-        .slice(lit(args.start as i64), length_expr);
+    let slice_expr = expr.str().slice(lit(args.start as i64), length_expr);
 
     expr_stack.push(slice_expr);
     FfiResult::success_no_handle()
