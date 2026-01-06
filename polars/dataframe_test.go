@@ -297,7 +297,7 @@ func TestExpressions(t *testing.T) {
 			Col("name"),
 			Col("name").StrPadStart(10, '*').Alias("pad_start"),
 			Col("name").StrPadEnd(10, '-').Alias("pad_end"),
-			Col("age").Cast(DataTypeString).StrZfill(5).Alias("age_zfill"),
+			Col("age").Cast(String).StrZfill(5).Alias("age_zfill"),
 		).Collect()
 		require.NoError(t, err)
 		defer result.Release()
@@ -375,6 +375,39 @@ func TestExpressions(t *testing.T) {
 │ Frank   ┆ 5         ┆ 5         │
 │ Grace   ┆ 5         ┆ 5         │
 └─────────┴───────────┴───────────┘`
+
+		require.Equal(t, expected, result.String())
+	})
+
+	t.Run("StringStripChars", func(t *testing.T) {
+		df := ReadCSV("../testdata/sample.csv")
+		result, err := df.SelectExpr(
+			Col("name"),
+			Col("name").StrStripChars("Ae").Alias("strip_chars"),
+			Col("name").StrStripCharsStart("ABCDEFG").Alias("strip_start"),
+			Col("name").StrStripCharsEnd("aeiou").Alias("strip_end"),
+		).Collect()
+		require.NoError(t, err)
+		defer result.Release()
+
+		// Golden test: strip chars operations
+		// StrStripChars removes matching chars from both ends
+		// StrStripCharsStart removes from start only
+		// StrStripCharsEnd removes from end only
+		expected := `shape: (7, 4)
+┌─────────┬─────────────┬─────────────┬───────────┐
+│ name    ┆ strip_chars ┆ strip_start ┆ strip_end │
+│ ---     ┆ ---         ┆ ---         ┆ ---       │
+│ str     ┆ str         ┆ str         ┆ str       │
+╞═════════╪═════════════╪═════════════╪═══════════╡
+│ Alice   ┆ lic         ┆ lice        ┆ Alic      │
+│ Bob     ┆ Bob         ┆ ob          ┆ Bob       │
+│ Charlie ┆ Charli      ┆ harlie      ┆ Charl     │
+│ Diana   ┆ Dian        ┆ iana        ┆ Dian      │
+│ Eve     ┆ v           ┆ ve          ┆ Ev        │
+│ Frank   ┆ Frank       ┆ rank        ┆ Frank     │
+│ Grace   ┆ Grac        ┆ race        ┆ Grac      │
+└─────────┴─────────────┴─────────────┴───────────┘`
 
 		require.Equal(t, expected, result.String())
 	})
