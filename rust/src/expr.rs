@@ -6,6 +6,7 @@ use crate::types::{
 use regex::Regex;
 use polars::prelude::*;
 
+
 /// Helper function for binary expression operations
 /// Takes a closure that operates on (left, right) expressions and returns the result
 fn binary_expr_op<F>(ctx: &ExecutionContext, op_name: &str, op: F) -> FfiResult
@@ -353,14 +354,21 @@ pub fn expr_str_slice(ctx: &ExecutionContext) -> FfiResult {
         );
     }
 
-    let length = if args.length < 0 {
+    let expr = expr_stack.pop().unwrap();
+
+    // Polars string slice expects Expr offsets/lengths.
+
+
         None
     } else {
-        Some(args.length as u64)
-    };
+        Some(lit(args.length))
+        Some(lit(args.length as i64))
 
-    let expr = expr_stack.pop().unwrap();
-    expr_stack.push(expr.str().slice(args.start, length));
+    let slice_expr = expr
+        .str()
+        .slice(lit(args.start as i64), length_expr);
+
+    expr_stack.push(slice_expr);
     FfiResult::success_no_handle()
 }
 
