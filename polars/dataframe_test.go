@@ -202,6 +202,34 @@ func TestExpressions(t *testing.T) {
 
 		require.Equal(t, expected, result.String())
 	})
+
+		t.Run("AdvancedStringOperations", func(t *testing.T) {
+			df := NewDataFrame(
+				NewSeries("s", []string{"abcde", "ababa", "hello"}),
+			)
+
+			result, err := df.SelectExpr(
+				Col("s"),
+				Col("s").StrSlice(1, 3).Alias("slice"),
+				Col("s").StrReplace("a", "X", true, 2).Alias("replace"),
+				Col("s").StrSplit("b").Alias("split"),
+			).Collect()
+			require.NoError(t, err)
+			defer result.Release()
+
+			expected := `shape: (3, 4)
+	┌───────┬───────┬────────┬────────────────┐
+	│ s     ┆ slice ┆ replace┆ split          │
+	│ ---   ┆ ---   ┆ ---    ┆ ---            │
+	│ str   ┆ str   ┆ str    ┆ list[str]      │
+	╞═══════╪═══════╪════════╪════════════════╡
+	│ abcde ┆ bcd   ┆ Xbcde  ┆ ["a", "cde"]     │
+	│ ababa ┆ bab   ┆ XbXba  ┆ ["a", "", "a"]   │
+	│ hello ┆ ell   ┆ hello  ┆ ["hello"]        │
+	└───────┴───────┴────────┴────────────────┘`
+
+			require.Equal(t, expected, result.String())
+		})
 }
 
 // TestAggregations demonstrates GroupBy and aggregation operations

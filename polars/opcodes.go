@@ -63,6 +63,9 @@ const (
 	OpExprStrToLowercase = 131
 	OpExprStrToUppercase = 132
 	OpExprSql            = 133
+	OpExprStrSlice       = 134
+	OpExprStrReplace     = 135
+	OpExprStrSplit       = 136
 	
 	// Window function operations
 	OpExprOver       = 140 // Applies window context to previous expression

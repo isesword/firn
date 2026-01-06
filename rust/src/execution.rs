@@ -82,6 +82,9 @@ fn dispatch_expression_operation(opcode: OpCode, ctx: &ExecutionContext) -> FfiR
         OpCode::ExprStrToLowercase => expr_str_to_lowercase(ctx),
         OpCode::ExprStrToUppercase => expr_str_to_uppercase(ctx),
         OpCode::ExprSql => expr_sql(ctx),
+        OpCode::ExprStrSlice => expr_str_slice(ctx),
+        OpCode::ExprStrReplace => expr_str_replace(ctx),
+        OpCode::ExprStrSplit => expr_str_split(ctx),
         // Window function operations
         OpCode::ExprOver => expr_over(ctx),
         OpCode::ExprRank => expr_rank(ctx),

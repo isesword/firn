@@ -25,6 +25,29 @@ pub struct StringArgs {
     pub pattern: RawStr, // Pattern/string for operations like contains, starts_with, ends_with
 }
 
+/// Arguments for string slice operations
+#[repr(C)]
+pub struct SliceArgs {
+    pub start: i64,   // Start offset (can be negative)
+    pub length: i64,  // Length; if negative, slice to end
+}
+
+/// Arguments for string replace operations
+#[repr(C)]
+pub struct ReplaceArgs {
+    pub pattern: RawStr,     // Pattern to search
+    pub replacement: RawStr, // Replacement string
+    pub literal: bool,       // If true, treat pattern as literal
+    pub n: i64,              // Max replacements; negative = unlimited
+}
+
+/// Arguments for string split operations
+#[repr(C)]
+pub struct SplitArgs {
+    pub delimiter: RawStr, // Delimiter to split on
+    pub n: i64,            // Max splits; negative = unlimited
+}
+
 /// Arguments for aggregation operations that need ddof (std, var)
 #[repr(C)]
 pub struct AggregationArgs {

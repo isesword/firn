@@ -427,6 +427,64 @@ func (expr *ExprNode) StrEndsWith(suffix string) *ExprNode {
 	return expr.unaryOpWithStringArgs(OpExprStrEndsWith, suffix)
 }
 
+// StrSlice slices each string by start/length; negative length means to end
+func (expr *ExprNode) StrSlice(start, length int64) *ExprNode {
+	return &ExprNode{
+		ops: combine(expr.ops, single(Operation{
+			opcode: OpExprStrSlice,
+			args: func() unsafe.Pointer {
+				return unsafe.Pointer(&C.SliceArgs{
+					start:  C.longlong(start),
+					length: C.longlong(length),
+				})
+			},
+		})),
+	}
+}
+
+// StrReplace replaces occurrences of pattern with replacement (literal match by default)
+// n < 0 replaces all occurrences; literal controls whether pattern is treated as literal
+func (expr *ExprNode) StrReplace(pattern, replacement string, literal bool, n ...int64) *ExprNode {
+	maxRepl := int64(-1)
+	if len(n) > 0 {
+		maxRepl = n[0]
+	}
+
+	return &ExprNode{
+		ops: combine(expr.ops, single(Operation{
+			opcode: OpExprStrReplace,
+			args: func() unsafe.Pointer {
+				return unsafe.Pointer(&C.ReplaceArgs{
+					pattern:     makeRawStr(pattern),
+					replacement: makeRawStr(replacement),
+					literal:     C.bool(literal),
+					n:           C.longlong(maxRepl),
+				})
+			},
+		})),
+	}
+}
+
+// StrSplit splits strings by delimiter; n < 0 means unlimited splits
+func (expr *ExprNode) StrSplit(delimiter string, n ...int64) *ExprNode {
+	maxSplits := int64(-1)
+	if len(n) > 0 {
+		maxSplits = n[0]
+	}
+
+	return &ExprNode{
+		ops: combine(expr.ops, single(Operation{
+			opcode: OpExprStrSplit,
+			args: func() unsafe.Pointer {
+				return unsafe.Pointer(&C.SplitArgs{
+					delimiter: makeRawStr(delimiter),
+					n:         C.longlong(maxSplits),
+				})
+			},
+		})),
+	}
+}
+
 // Window Functions
 
 // Over applies a window context to the expression with partition columns

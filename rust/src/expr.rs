@@ -1,5 +1,9 @@
 use crate::{ExecutionContext, FfiResult, ERROR_INVALID_UTF8, ERROR_POLARS_OPERATION};
-use crate::types::{decode_data_type, CastArgs, ColumnArgs, LiteralArgs, AliasArgs, StringArgs, AggregationArgs, CountArgs};
+use crate::types::{
+    decode_data_type, CastArgs, ColumnArgs, LiteralArgs, AliasArgs, StringArgs, AggregationArgs,
+    CountArgs, SliceArgs, ReplaceArgs, SplitArgs,
+};
+use regex::Regex;
 use polars::prelude::*;
 
 /// Helper function for binary expression operations
@@ -335,6 +339,114 @@ pub fn expr_str_ends_with(ctx: &ExecutionContext) -> FfiResult {
 
     let expr = expr_stack.pop().unwrap();
     expr_stack.push(expr.str().ends_with(lit(suffix_str)));
+    FfiResult::success_no_handle()
+}
+
+pub fn expr_str_slice(ctx: &ExecutionContext) -> FfiResult {
+    let expr_stack = unsafe { &mut *ctx.expr_stack };
+    let args = unsafe { &*(ctx.operation_args as *const SliceArgs) };
+
+    if expr_stack.is_empty() {
+        return FfiResult::error(
+            ERROR_POLARS_OPERATION,
+            "str_slice requires 1 expression on stack",
+        );
+    }
+
+    let length = if args.length < 0 {
+        None
+    } else {
+        Some(args.length as u64)
+    };
+
+    let expr = expr_stack.pop().unwrap();
+    expr_stack.push(expr.str().slice(args.start, length));
+    FfiResult::success_no_handle()
+}
+
+pub fn expr_str_replace(ctx: &ExecutionContext) -> FfiResult {
+    let expr_stack = unsafe { &mut *ctx.expr_stack };
+    let args = unsafe { &*(ctx.operation_args as *const ReplaceArgs) };
+
+    if expr_stack.is_empty() {
+        return FfiResult::error(
+            ERROR_POLARS_OPERATION,
+            "str_replace requires 1 expression on stack",
+        );
+    }
+
+    let pattern = match unsafe { args.pattern.as_str() } {
+        Ok(s) => s.to_string(),
+        Err(_) => return FfiResult::error(ERROR_INVALID_UTF8, "Invalid UTF-8 in pattern"),
+    };
+
+    let replacement = match unsafe { args.replacement.as_str() } {
+        Ok(s) => s.to_string(),
+        Err(_) => return FfiResult::error(ERROR_INVALID_UTF8, "Invalid UTF-8 in replacement"),
+    };
+
+    let literal = args.literal;
+    let max_replacements = args.n;
+
+    let expr = expr_stack.pop().unwrap();
+
+    let result_expr = expr.map(
+        move |s| {
+            let ca = s.utf8()?;
+
+            if literal {
+                let pat = pattern.clone();
+                let rep = replacement.clone();
+                let out = ca.apply(|opt| opt.map(|v| {
+                    if max_replacements < 0 {
+                        v.replace(&pat, &rep)
+                    } else {
+                        v.replacen(&pat, &rep, max_replacements as usize)
+                    }
+                }));
+                Ok(out.into_series())
+            } else {
+                let re = Regex::new(&pattern)
+                    .map_err(|e| PolarsError::ComputeError(e.to_string().into()))?;
+                let rep = replacement.clone();
+                let out = ca.apply(|opt| opt.map(|v| {
+                    if max_replacements < 0 {
+                        re.replace_all(v, rep.as_str()).into_owned()
+                    } else {
+                        re.replacen(v, max_replacements as usize, rep.as_str()).into_owned()
+                    }
+                }));
+                Ok(out.into_series())
+            }
+        },
+        GetOutput::from_type(DataType::Utf8),
+    );
+
+    expr_stack.push(result_expr);
+    FfiResult::success_no_handle()
+}
+
+pub fn expr_str_split(ctx: &ExecutionContext) -> FfiResult {
+    let expr_stack = unsafe { &mut *ctx.expr_stack };
+    let args = unsafe { &*(ctx.operation_args as *const SplitArgs) };
+
+    if expr_stack.is_empty() {
+        return FfiResult::error(
+            ERROR_POLARS_OPERATION,
+            "str_split requires 1 expression on stack",
+        );
+    }
+
+    let delimiter = match unsafe { args.delimiter.as_str() } {
+        Ok(s) => s,
+        Err(_) => return FfiResult::error(ERROR_INVALID_UTF8, "Invalid UTF-8 in delimiter"),
+    };
+
+    let expr = expr_stack.pop().unwrap();
+
+    let split_expr = expr.str().split(lit(delimiter));
+
+    expr_stack.push(split_expr);
     FfiResult::success_no_handle()
 }
 

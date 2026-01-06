@@ -63,6 +63,9 @@ pub enum OpCode {
     ExprStrToLowercase = 131,
     ExprStrToUppercase = 132,
     ExprSql = 133,
+    ExprStrSlice = 134,
+    ExprStrReplace = 135,
+    ExprStrSplit = 136,
 
     // Window function operations
     ExprOver = 140,       // Applies window context to previous expression
@@ -139,6 +142,9 @@ impl OpCode {
             131 => Some(OpCode::ExprStrToLowercase),
             132 => Some(OpCode::ExprStrToUppercase),
             133 => Some(OpCode::ExprSql),
+            134 => Some(OpCode::ExprStrSlice),
+            135 => Some(OpCode::ExprStrReplace),
+            136 => Some(OpCode::ExprStrSplit),
             140 => Some(OpCode::ExprOver),
             141 => Some(OpCode::ExprRank),
             142 => Some(OpCode::ExprDenseRank),

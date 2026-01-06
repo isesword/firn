@@ -54,6 +54,23 @@ typedef struct {
     RawStr pattern; // Pattern/string for operations like contains, starts_with, ends_with
 } StringArgs;
 
+typedef struct {
+    int64_t start;  // Start offset (can be negative)
+    int64_t length; // Length; if negative, slice to end
+} SliceArgs;
+
+typedef struct {
+    RawStr pattern;      // Pattern to search
+    RawStr replacement;  // Replacement string
+    bool literal;        // If true, treat pattern as literal
+    int64_t n;           // Max replacements; negative = unlimited
+} ReplaceArgs;
+
+typedef struct {
+    RawStr delimiter; // Delimiter to split on
+    int64_t n;        // Max splits; negative = unlimited
+} SplitArgs;
+
 // Sort direction constants (matching Rust SortDirection enum)
 #define SORT_DIRECTION_ASCENDING 0
 #define SORT_DIRECTION_DESCENDING 1
