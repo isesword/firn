@@ -92,7 +92,6 @@ fn dispatch_expression_operation(opcode: OpCode, ctx: &ExecutionContext) -> FfiR
         OpCode::ExprStrStripEnd => expr_str_strip_chars_end(ctx),
         OpCode::ExprStrStripPrefix => expr_str_strip_prefix(ctx),
         OpCode::ExprStrStripSuffix => expr_str_strip_suffix(ctx),
-        OpCode::ExprStrToTitlecase => expr_str_to_titlecase(ctx),
         OpCode::ExprStrReverse => expr_str_reverse(ctx),
         OpCode::ExprStrHead => expr_str_head(ctx),
         OpCode::ExprStrTail => expr_str_tail(ctx),

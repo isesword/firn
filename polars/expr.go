@@ -434,8 +434,8 @@ func (expr *ExprNode) StrSlice(start, length int64) *ExprNode {
 			opcode: OpExprStrSlice,
 			args: func() unsafe.Pointer {
 				return unsafe.Pointer(&C.SliceArgs{
-					start:  C.longlong(start),
-					length: C.longlong(length),
+					start:  C.int64_t(start),
+					length: C.int64_t(length),
 				})
 			},
 		})),
@@ -458,7 +458,7 @@ func (expr *ExprNode) StrReplace(pattern, replacement string, literal bool, n ..
 					pattern:     makeRawStr(pattern),
 					replacement: makeRawStr(replacement),
 					literal:     C.bool(literal),
-					n:           C.longlong(maxRepl),
+					n:           C.int64_t(maxRepl),
 				})
 			},
 		})),
@@ -478,7 +478,7 @@ func (expr *ExprNode) StrSplit(delimiter string, n ...int64) *ExprNode {
 			args: func() unsafe.Pointer {
 				return unsafe.Pointer(&C.SplitArgs{
 					delimiter: makeRawStr(delimiter),
-					n:         C.longlong(maxSplits),
+					n:         C.int64_t(maxSplits),
 				})
 			},
 		})),
@@ -530,11 +530,6 @@ func (expr *ExprNode) StrStripSuffix(suffix string) *ExprNode {
 	return expr.unaryOpWithStringArgs(OpExprStrStripSuffix, suffix)
 }
 
-// StrToTitlecase converts strings to title case
-func (expr *ExprNode) StrToTitlecase() *ExprNode {
-	return expr.unaryOp(OpExprStrToTitlecase)
-}
-
 // StrReverse reverses each string
 func (expr *ExprNode) StrReverse() *ExprNode {
 	return expr.unaryOp(OpExprStrReverse)
@@ -548,7 +543,7 @@ func (expr *ExprNode) StrHead(n int64) *ExprNode {
 			opcode: OpExprStrHead,
 			args: func() unsafe.Pointer {
 				return unsafe.Pointer(&C.HeadTailArgs{
-					n: C.longlong(n),
+					n: C.int64_t(n),
 				})
 			},
 		})),
@@ -563,7 +558,7 @@ func (expr *ExprNode) StrTail(n int64) *ExprNode {
 			opcode: OpExprStrTail,
 			args: func() unsafe.Pointer {
 				return unsafe.Pointer(&C.HeadTailArgs{
-					n: C.longlong(n),
+					n: C.int64_t(n),
 				})
 			},
 		})),
@@ -581,7 +576,7 @@ func (expr *ExprNode) StrPadStart(length int64, fillChar ...byte) *ExprNode {
 			opcode: OpExprStrPadStart,
 			args: func() unsafe.Pointer {
 				return unsafe.Pointer(&C.PadArgs{
-					length:    C.longlong(length),
+					length:    C.int64_t(length),
 					fill_char: C.char(fill),
 				})
 			},
@@ -600,7 +595,7 @@ func (expr *ExprNode) StrPadEnd(length int64, fillChar ...byte) *ExprNode {
 			opcode: OpExprStrPadEnd,
 			args: func() unsafe.Pointer {
 				return unsafe.Pointer(&C.PadArgs{
-					length:    C.longlong(length),
+					length:    C.int64_t(length),
 					fill_char: C.char(fill),
 				})
 			},
@@ -615,7 +610,7 @@ func (expr *ExprNode) StrZfill(length int64) *ExprNode {
 			opcode: OpExprStrZfill,
 			args: func() unsafe.Pointer {
 				return unsafe.Pointer(&C.HeadTailArgs{
-					n: C.longlong(length),
+					n: C.int64_t(length),
 				})
 			},
 		})),

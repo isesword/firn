@@ -234,31 +234,30 @@ func TestExpressions(t *testing.T) {
 		require.Equal(t, expected, result.String())
 	})
 
-	t.Run("StringTitlecaseAndReverse", func(t *testing.T) {
+	t.Run("StringReverse", func(t *testing.T) {
 		df := ReadCSV("../testdata/sample.csv")
 		result, err := df.SelectExpr(
 			Col("name"),
-			Col("name").StrToTitlecase().Alias("titlecase"),
 			Col("name").StrReverse().Alias("reversed"),
 		).Collect()
 		require.NoError(t, err)
 		defer result.Release()
 
-		// Golden test: titlecase and reverse operations
-		expected := `shape: (7, 3)
-┌─────────┬───────────┬──────────┐
-│ name    ┆ titlecase ┆ reversed │
-│ ---     ┆ ---       ┆ ---      │
-│ str     ┆ str       ┆ str      │
-╞═════════╪═══════════╪══════════╡
-│ Alice   ┆ Alice     ┆ ecilA    │
-│ Bob     ┆ Bob       ┆ boB      │
-│ Charlie ┆ Charlie   ┆ eilrahC  │
-│ Diana   ┆ Diana     ┆ anaiD    │
-│ Eve     ┆ Eve       ┆ evE      │
-│ Frank   ┆ Frank     ┆ knarF    │
-│ Grace   ┆ Grace     ┆ ecarG    │
-└─────────┴───────────┴──────────┘`
+		// Golden test: reverse operation
+		expected := `shape: (7, 2)
+┌─────────┬──────────┐
+│ name    ┆ reversed │
+│ ---     ┆ ---      │
+│ str     ┆ str      │
+╞═════════╪══════════╡
+│ Alice   ┆ ecilA    │
+│ Bob     ┆ boB      │
+│ Charlie ┆ eilrahC  │
+│ Diana   ┆ anaiD    │
+│ Eve     ┆ evE      │
+│ Frank   ┆ knarF    │
+│ Grace   ┆ ecarG    │
+└─────────┴──────────┘`
 
 		require.Equal(t, expected, result.String())
 	})

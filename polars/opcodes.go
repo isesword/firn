@@ -74,7 +74,6 @@ const (
 	OpExprStrStripEnd    = 140
 	OpExprStrStripPrefix = 170
 	OpExprStrStripSuffix = 171
-	OpExprStrToTitlecase = 172
 	OpExprStrReverse     = 173
 	OpExprStrHead        = 174
 	OpExprStrTail        = 175

@@ -567,11 +567,6 @@ pub fn expr_str_strip_suffix(ctx: &ExecutionContext) -> FfiResult {
     FfiResult::success_no_handle()
 }
 
-/// Convert to title case
-pub fn expr_str_to_titlecase(ctx: &ExecutionContext) -> FfiResult {
-    unary_expr_op(ctx, "str_to_titlecase", |expr| expr.str().to_titlecase())
-}
-
 /// Reverse string
 pub fn expr_str_reverse(ctx: &ExecutionContext) -> FfiResult {
     unary_expr_op(ctx, "str_reverse", |expr| expr.str().reverse())
@@ -625,7 +620,7 @@ pub fn expr_str_pad_start(ctx: &ExecutionContext) -> FfiResult {
 
     let fill_char = args.fill_char as char;
     let expr = expr_stack.pop().unwrap();
-    expr_stack.push(expr.str().pad_start(args.length as usize, fill_char));
+    expr_stack.push(expr.str().pad_start(lit(args.length as u64), fill_char));
     FfiResult::success_no_handle()
 }
 
@@ -643,7 +638,7 @@ pub fn expr_str_pad_end(ctx: &ExecutionContext) -> FfiResult {
 
     let fill_char = args.fill_char as char;
     let expr = expr_stack.pop().unwrap();
-    expr_stack.push(expr.str().pad_end(args.length as usize, fill_char));
+    expr_stack.push(expr.str().pad_end(lit(args.length as u64), fill_char));
     FfiResult::success_no_handle()
 }
 
