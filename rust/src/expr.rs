@@ -1,7 +1,7 @@
 use crate::{ExecutionContext, FfiResult, ERROR_INVALID_UTF8, ERROR_POLARS_OPERATION};
 use crate::types::{
-    decode_data_type, AggregationArgs, AliasArgs, CastArgs, ColumnArgs, CountArgs, LiteralArgs,
-    ReplaceArgs, SliceArgs, SplitArgs, StringArgs,
+    decode_data_type, AggregationArgs, AliasArgs, CastArgs, ColumnArgs, CountArgs, HeadTailArgs,
+    LiteralArgs, PadArgs, ReplaceArgs, SliceArgs, SplitArgs, StringArgs,
 };
 use polars::prelude::*;
 
@@ -432,6 +432,235 @@ pub fn expr_str_split(ctx: &ExecutionContext) -> FfiResult {
     let split_expr = expr.str().split(lit(delimiter));
 
     expr_stack.push(split_expr);
+    FfiResult::success_no_handle()
+}
+
+// Advanced string operations (Tier 2)
+
+/// String byte length - faster than char length for ASCII
+pub fn expr_str_len_bytes(ctx: &ExecutionContext) -> FfiResult {
+    unary_expr_op(ctx, "str_len_bytes", |expr| expr.str().len_bytes())
+}
+
+/// Strip leading and trailing characters
+pub fn expr_str_strip_chars(ctx: &ExecutionContext) -> FfiResult {
+    let expr_stack = unsafe { &mut *ctx.expr_stack };
+    let args = unsafe { &*(ctx.operation_args as *const StringArgs) };
+
+    if expr_stack.is_empty() {
+        return FfiResult::error(
+            ERROR_POLARS_OPERATION,
+            "str_strip_chars requires 1 expression on stack",
+        );
+    }
+
+    let chars_str = match unsafe { args.pattern.as_str() } {
+        Ok(s) => s,
+        Err(_) => return FfiResult::error(ERROR_INVALID_UTF8, "Invalid UTF-8 in characters"),
+    };
+
+    let expr = expr_stack.pop().unwrap();
+    let result = if chars_str.is_empty() {
+        expr.str().strip_chars(lit(Null {}))
+    } else {
+        expr.str().strip_chars(lit(chars_str))
+    };
+    expr_stack.push(result);
+    FfiResult::success_no_handle()
+}
+
+/// Strip leading characters
+pub fn expr_str_strip_chars_start(ctx: &ExecutionContext) -> FfiResult {
+    let expr_stack = unsafe { &mut *ctx.expr_stack };
+    let args = unsafe { &*(ctx.operation_args as *const StringArgs) };
+
+    if expr_stack.is_empty() {
+        return FfiResult::error(
+            ERROR_POLARS_OPERATION,
+            "str_strip_chars_start requires 1 expression on stack",
+        );
+    }
+
+    let chars_str = match unsafe { args.pattern.as_str() } {
+        Ok(s) => s,
+        Err(_) => return FfiResult::error(ERROR_INVALID_UTF8, "Invalid UTF-8 in characters"),
+    };
+
+    let expr = expr_stack.pop().unwrap();
+    let result = if chars_str.is_empty() {
+        expr.str().strip_chars_start(lit(Null {}))
+    } else {
+        expr.str().strip_chars_start(lit(chars_str))
+    };
+    expr_stack.push(result);
+    FfiResult::success_no_handle()
+}
+
+/// Strip trailing characters
+pub fn expr_str_strip_chars_end(ctx: &ExecutionContext) -> FfiResult {
+    let expr_stack = unsafe { &mut *ctx.expr_stack };
+    let args = unsafe { &*(ctx.operation_args as *const StringArgs) };
+
+    if expr_stack.is_empty() {
+        return FfiResult::error(
+            ERROR_POLARS_OPERATION,
+            "str_strip_chars_end requires 1 expression on stack",
+        );
+    }
+
+    let chars_str = match unsafe { args.pattern.as_str() } {
+        Ok(s) => s,
+        Err(_) => return FfiResult::error(ERROR_INVALID_UTF8, "Invalid UTF-8 in characters"),
+    };
+
+    let expr = expr_stack.pop().unwrap();
+    let result = if chars_str.is_empty() {
+        expr.str().strip_chars_end(lit(Null {}))
+    } else {
+        expr.str().strip_chars_end(lit(chars_str))
+    };
+    expr_stack.push(result);
+    FfiResult::success_no_handle()
+}
+
+/// Strip prefix
+pub fn expr_str_strip_prefix(ctx: &ExecutionContext) -> FfiResult {
+    let expr_stack = unsafe { &mut *ctx.expr_stack };
+    let args = unsafe { &*(ctx.operation_args as *const StringArgs) };
+
+    if expr_stack.is_empty() {
+        return FfiResult::error(
+            ERROR_POLARS_OPERATION,
+            "str_strip_prefix requires 1 expression on stack",
+        );
+    }
+
+    let prefix_str = match unsafe { args.pattern.as_str() } {
+        Ok(s) => s,
+        Err(_) => return FfiResult::error(ERROR_INVALID_UTF8, "Invalid UTF-8 in prefix"),
+    };
+
+    let expr = expr_stack.pop().unwrap();
+    expr_stack.push(expr.str().strip_prefix(lit(prefix_str)));
+    FfiResult::success_no_handle()
+}
+
+/// Strip suffix
+pub fn expr_str_strip_suffix(ctx: &ExecutionContext) -> FfiResult {
+    let expr_stack = unsafe { &mut *ctx.expr_stack };
+    let args = unsafe { &*(ctx.operation_args as *const StringArgs) };
+
+    if expr_stack.is_empty() {
+        return FfiResult::error(
+            ERROR_POLARS_OPERATION,
+            "str_strip_suffix requires 1 expression on stack",
+        );
+    }
+
+    let suffix_str = match unsafe { args.pattern.as_str() } {
+        Ok(s) => s,
+        Err(_) => return FfiResult::error(ERROR_INVALID_UTF8, "Invalid UTF-8 in suffix"),
+    };
+
+    let expr = expr_stack.pop().unwrap();
+    expr_stack.push(expr.str().strip_suffix(lit(suffix_str)));
+    FfiResult::success_no_handle()
+}
+
+/// Convert to title case
+pub fn expr_str_to_titlecase(ctx: &ExecutionContext) -> FfiResult {
+    unary_expr_op(ctx, "str_to_titlecase", |expr| expr.str().to_titlecase())
+}
+
+/// Reverse string
+pub fn expr_str_reverse(ctx: &ExecutionContext) -> FfiResult {
+    unary_expr_op(ctx, "str_reverse", |expr| expr.str().reverse())
+}
+
+/// Get first n characters (head)
+pub fn expr_str_head(ctx: &ExecutionContext) -> FfiResult {
+    let expr_stack = unsafe { &mut *ctx.expr_stack };
+    let args = unsafe { &*(ctx.operation_args as *const HeadTailArgs) };
+
+    if expr_stack.is_empty() {
+        return FfiResult::error(
+            ERROR_POLARS_OPERATION,
+            "str_head requires 1 expression on stack",
+        );
+    }
+
+    let expr = expr_stack.pop().unwrap();
+    expr_stack.push(expr.str().head(lit(args.n)));
+    FfiResult::success_no_handle()
+}
+
+/// Get last n characters (tail)
+pub fn expr_str_tail(ctx: &ExecutionContext) -> FfiResult {
+    let expr_stack = unsafe { &mut *ctx.expr_stack };
+    let args = unsafe { &*(ctx.operation_args as *const HeadTailArgs) };
+
+    if expr_stack.is_empty() {
+        return FfiResult::error(
+            ERROR_POLARS_OPERATION,
+            "str_tail requires 1 expression on stack",
+        );
+    }
+
+    let expr = expr_stack.pop().unwrap();
+    expr_stack.push(expr.str().tail(lit(args.n)));
+    FfiResult::success_no_handle()
+}
+
+/// Pad string on the left (start)
+pub fn expr_str_pad_start(ctx: &ExecutionContext) -> FfiResult {
+    let expr_stack = unsafe { &mut *ctx.expr_stack };
+    let args = unsafe { &*(ctx.operation_args as *const PadArgs) };
+
+    if expr_stack.is_empty() {
+        return FfiResult::error(
+            ERROR_POLARS_OPERATION,
+            "str_pad_start requires 1 expression on stack",
+        );
+    }
+
+    let fill_char = args.fill_char as char;
+    let expr = expr_stack.pop().unwrap();
+    expr_stack.push(expr.str().pad_start(args.length as usize, fill_char));
+    FfiResult::success_no_handle()
+}
+
+/// Pad string on the right (end)
+pub fn expr_str_pad_end(ctx: &ExecutionContext) -> FfiResult {
+    let expr_stack = unsafe { &mut *ctx.expr_stack };
+    let args = unsafe { &*(ctx.operation_args as *const PadArgs) };
+
+    if expr_stack.is_empty() {
+        return FfiResult::error(
+            ERROR_POLARS_OPERATION,
+            "str_pad_end requires 1 expression on stack",
+        );
+    }
+
+    let fill_char = args.fill_char as char;
+    let expr = expr_stack.pop().unwrap();
+    expr_stack.push(expr.str().pad_end(args.length as usize, fill_char));
+    FfiResult::success_no_handle()
+}
+
+/// Zero-fill string on the left
+pub fn expr_str_zfill(ctx: &ExecutionContext) -> FfiResult {
+    let expr_stack = unsafe { &mut *ctx.expr_stack };
+    let args = unsafe { &*(ctx.operation_args as *const HeadTailArgs) };
+
+    if expr_stack.is_empty() {
+        return FfiResult::error(
+            ERROR_POLARS_OPERATION,
+            "str_zfill requires 1 expression on stack",
+        );
+    }
+
+    let expr = expr_stack.pop().unwrap();
+    expr_stack.push(expr.str().zfill(lit(args.n as u64)));
     FfiResult::success_no_handle()
 }
 

@@ -48,6 +48,19 @@ pub struct SplitArgs {
     pub n: i64,            // Max splits; negative = unlimited
 }
 
+/// Arguments for head/tail operations
+#[repr(C)]
+pub struct HeadTailArgs {
+    pub n: i64, // Number of characters
+}
+
+/// Arguments for pad operations
+#[repr(C)]
+pub struct PadArgs {
+    pub length: i64,    // Target length
+    pub fill_char: u8,  // Fill character (single byte)
+}
+
 /// Arguments for aggregation operations that need ddof (std, var)
 #[repr(C)]
 pub struct AggregationArgs {

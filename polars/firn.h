@@ -71,6 +71,17 @@ typedef struct {
     int64_t n;        // Max splits; negative = unlimited
 } SplitArgs;
 
+// Arguments for head/tail operations
+typedef struct {
+    int64_t n;        // Number of characters
+} HeadTailArgs;
+
+// Arguments for pad operations
+typedef struct {
+    int64_t length;   // Target length
+    char fill_char;   // Fill character (single byte)
+} PadArgs;
+
 // Sort direction constants (matching Rust SortDirection enum)
 #define SORT_DIRECTION_ASCENDING 0
 #define SORT_DIRECTION_DESCENDING 1

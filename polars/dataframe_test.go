@@ -233,6 +233,152 @@ func TestExpressions(t *testing.T) {
 
 		require.Equal(t, expected, result.String())
 	})
+
+	t.Run("StringTitlecaseAndReverse", func(t *testing.T) {
+		df := ReadCSV("../testdata/sample.csv")
+		result, err := df.SelectExpr(
+			Col("name"),
+			Col("name").StrToTitlecase().Alias("titlecase"),
+			Col("name").StrReverse().Alias("reversed"),
+		).Collect()
+		require.NoError(t, err)
+		defer result.Release()
+
+		// Golden test: titlecase and reverse operations
+		expected := `shape: (7, 3)
+┌─────────┬───────────┬──────────┐
+│ name    ┆ titlecase ┆ reversed │
+│ ---     ┆ ---       ┆ ---      │
+│ str     ┆ str       ┆ str      │
+╞═════════╪═══════════╪══════════╡
+│ Alice   ┆ Alice     ┆ ecilA    │
+│ Bob     ┆ Bob       ┆ boB      │
+│ Charlie ┆ Charlie   ┆ eilrahC  │
+│ Diana   ┆ Diana     ┆ anaiD    │
+│ Eve     ┆ Eve       ┆ evE      │
+│ Frank   ┆ Frank     ┆ knarF    │
+│ Grace   ┆ Grace     ┆ ecarG    │
+└─────────┴───────────┴──────────┘`
+
+		require.Equal(t, expected, result.String())
+	})
+
+	t.Run("StringHeadAndTail", func(t *testing.T) {
+		df := ReadCSV("../testdata/sample.csv")
+		result, err := df.SelectExpr(
+			Col("name"),
+			Col("name").StrHead(3).Alias("head3"),
+			Col("name").StrTail(2).Alias("tail2"),
+		).Collect()
+		require.NoError(t, err)
+		defer result.Release()
+
+		// Golden test: head and tail operations
+		expected := `shape: (7, 3)
+┌─────────┬───────┬───────┐
+│ name    ┆ head3 ┆ tail2 │
+│ ---     ┆ ---   ┆ ---   │
+│ str     ┆ str   ┆ str   │
+╞═════════╪═══════╪═══════╡
+│ Alice   ┆ Ali   ┆ ce    │
+│ Bob     ┆ Bob   ┆ ob    │
+│ Charlie ┆ Cha   ┆ ie    │
+│ Diana   ┆ Dia   ┆ na    │
+│ Eve     ┆ Eve   ┆ ve    │
+│ Frank   ┆ Fra   ┆ nk    │
+│ Grace   ┆ Gra   ┆ ce    │
+└─────────┴───────┴───────┘`
+
+		require.Equal(t, expected, result.String())
+	})
+
+	t.Run("StringPadAndZfill", func(t *testing.T) {
+		df := ReadCSV("../testdata/sample.csv")
+		result, err := df.SelectExpr(
+			Col("name"),
+			Col("name").StrPadStart(10, '*').Alias("pad_start"),
+			Col("name").StrPadEnd(10, '-').Alias("pad_end"),
+			Col("age").Cast(DataTypeString).StrZfill(5).Alias("age_zfill"),
+		).Collect()
+		require.NoError(t, err)
+		defer result.Release()
+
+		// Golden test: padding and zfill operations
+		expected := `shape: (7, 4)
+┌─────────┬────────────┬────────────┬───────────┐
+│ name    ┆ pad_start  ┆ pad_end    ┆ age_zfill │
+│ ---     ┆ ---        ┆ ---        ┆ ---       │
+│ str     ┆ str        ┆ str        ┆ str       │
+╞═════════╪════════════╪════════════╪═══════════╡
+│ Alice   ┆ *****Alice ┆ Alice----- ┆ 00025     │
+│ Bob     ┆ *******Bob ┆ Bob------- ┆ 00030     │
+│ Charlie ┆ ***Charlie ┆ Charlie--- ┆ 00035     │
+│ Diana   ┆ *****Diana ┆ Diana----- ┆ 00028     │
+│ Eve     ┆ *******Eve ┆ Eve------- ┆ 00032     │
+│ Frank   ┆ *****Frank ┆ Frank----- ┆ 00029     │
+│ Grace   ┆ *****Grace ┆ Grace----- ┆ 00027     │
+└─────────┴────────────┴────────────┴───────────┘`
+
+		require.Equal(t, expected, result.String())
+	})
+
+	t.Run("StringStripOperations", func(t *testing.T) {
+		df := ReadCSV("../testdata/sample.csv")
+		result, err := df.SelectExpr(
+			Col("department"),
+			Col("department").StrStripPrefix("Eng").Alias("strip_prefix"),
+			Col("department").StrStripSuffix("ing").Alias("strip_suffix"),
+		).Collect()
+		require.NoError(t, err)
+		defer result.Release()
+
+		// Golden test: strip prefix and suffix operations
+		expected := `shape: (7, 3)
+┌─────────────┬──────────────┬──────────────┐
+│ department  ┆ strip_prefix ┆ strip_suffix │
+│ ---         ┆ ---          ┆ ---          │
+│ str         ┆ str          ┆ str          │
+╞═════════════╪══════════════╪══════════════╡
+│ Engineering ┆ ineering     ┆ Engineer     │
+│ Marketing   ┆ Marketing    ┆ Market       │
+│ Engineering ┆ ineering     ┆ Engineer     │
+│ Sales       ┆ Sales        ┆ Sales        │
+│ Engineering ┆ ineering     ┆ Engineer     │
+│ Marketing   ┆ Marketing    ┆ Market       │
+│ Sales       ┆ Sales        ┆ Sales        │
+└─────────────┴──────────────┴──────────────┘`
+
+		require.Equal(t, expected, result.String())
+	})
+
+	t.Run("StringLenBytes", func(t *testing.T) {
+		df := ReadCSV("../testdata/sample.csv")
+		result, err := df.SelectExpr(
+			Col("name"),
+			Col("name").StrLen().Alias("len_chars"),
+			Col("name").StrLenBytes().Alias("len_bytes"),
+		).Collect()
+		require.NoError(t, err)
+		defer result.Release()
+
+		// Golden test: len_chars vs len_bytes (same for ASCII)
+		expected := `shape: (7, 3)
+┌─────────┬───────────┬───────────┐
+│ name    ┆ len_chars ┆ len_bytes │
+│ ---     ┆ ---       ┆ ---       │
+│ str     ┆ u32       ┆ u32       │
+╞═════════╪═══════════╪═══════════╡
+│ Alice   ┆ 5         ┆ 5         │
+│ Bob     ┆ 3         ┆ 3         │
+│ Charlie ┆ 7         ┆ 7         │
+│ Diana   ┆ 5         ┆ 5         │
+│ Eve     ┆ 3         ┆ 3         │
+│ Frank   ┆ 5         ┆ 5         │
+│ Grace   ┆ 5         ┆ 5         │
+└─────────┴───────────┴───────────┘`
+
+		require.Equal(t, expected, result.String())
+	})
 }
 
 // TestAggregations demonstrates GroupBy and aggregation operations
