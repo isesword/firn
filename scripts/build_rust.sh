@@ -28,6 +28,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         cp "${TARGET_DIR}/lib${LIB_NAME}.dylib" "../lib/libfirn_darwin_arm64.dylib"
         echo "📦 Dynamic library copied to: ../lib/libfirn_darwin_arm64.dylib"
         ls -la "../lib/libfirn_darwin_arm64.dylib"
+            install_name_tool -id "@rpath/libfirn_darwin_arm64.dylib" "../lib/libfirn_darwin_arm64.dylib"
     fi
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     cp "${TARGET_DIR}/lib${LIB_NAME}.a" "../lib/libfirn_linux_amd64.a"
