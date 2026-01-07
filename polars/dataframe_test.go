@@ -217,19 +217,19 @@ func TestExpressions(t *testing.T) {
 
 		// Golden test: advanced string operations on name column
 		expected := `shape: (7, 4)
-┌─────────┬───────┬─────────┬───────────────────┐
-│ name    ┆ slice ┆ replace ┆ split             │
-│ ---     ┆ ---   ┆ ---     ┆ ---               │
-│ str     ┆ str   ┆ str     ┆ list[str]         │
-╞═════════╪═══════╪═════════╪═══════════════════╡
-│ Alice   ┆ lic   ┆ Alice   ┆ ["Alice"]         │
-│ Bob     ┆ ob    ┆ Bob     ┆ ["Bob"]           │
-│ Charlie ┆ har   ┆ ChXrlie ┆ ["Ch", "rlie"]    │
-│ Diana   ┆ ian   ┆ DiXnX   ┆ ["Di", "n", ""]   │
-│ Eve     ┆ ve    ┆ Eve     ┆ ["Eve"]           │
-│ Frank   ┆ ran   ┆ FrXnk   ┆ ["Fr", "nk"]      │
-│ Grace   ┆ rac   ┆ GrXce   ┆ ["Gr", "ce"]      │
-└─────────┴───────┴─────────┴───────────────────┘`
+┌─────────┬───────┬─────────┬─────────────────┐
+│ name    ┆ slice ┆ replace ┆ split           │
+│ ---     ┆ ---   ┆ ---     ┆ ---             │
+│ str     ┆ str   ┆ str     ┆ list[str]       │
+╞═════════╪═══════╪═════════╪═════════════════╡
+│ Alice   ┆ lic   ┆ Alice   ┆ ["Alice"]       │
+│ Bob     ┆ ob    ┆ Bob     ┆ ["Bob"]         │
+│ Charlie ┆ har   ┆ ChXrlie ┆ ["Ch", "rlie"]  │
+│ Diana   ┆ ian   ┆ DiXnX   ┆ ["Di", "n", ""] │
+│ Eve     ┆ ve    ┆ Eve     ┆ ["Eve"]         │
+│ Frank   ┆ ran   ┆ FrXnk   ┆ ["Fr", "nk"]    │
+│ Grace   ┆ rac   ┆ GrXce   ┆ ["Gr", "ce"]    │
+└─────────┴───────┴─────────┴─────────────────┘`
 
 		require.Equal(t, expected, result.String())
 	})
@@ -496,10 +496,10 @@ func TestSQLExpressions(t *testing.T) {
 	t.Run("SelectWithMixedSQLAndFluent", func(t *testing.T) {
 		df := ReadCSV("../testdata/sample.csv")
 		result, err := df.Select(
-			"name",                                     // SQL string (column name)
-			"salary * 1.1 as bonus_salary",             // SQL expression with alias
+			"name",                         // SQL string (column name)
+			"salary * 1.1 as bonus_salary", // SQL expression with alias
 			Col("age").Add(Lit(5)).Alias("age_plus_5"), // Fluent API
-			"department",                               // SQL string (column name)
+			"department", // SQL string (column name)
 		).Collect()
 		require.NoError(t, err)
 		defer result.Release()
@@ -612,10 +612,10 @@ func TestSQLExpressions(t *testing.T) {
 				"UPPER(name) as name_upper",                    // SQL function
 			).
 			Select(
-				"name",                                       // SQL column
+				"name", // SQL column
 				Col("adjusted_salary").Alias("final_salary"), // Fluent (referencing SQL-created column)
-				"is_experienced",                             // SQL column (referencing fluent-created column)
-				"department",                                 // SQL column
+				"is_experienced", // SQL column (referencing fluent-created column)
+				"department",     // SQL column
 			).
 			Filter(
 				Col("final_salary").Gt(Lit(60000)).And( // Fluent filter
@@ -645,7 +645,7 @@ func TestSQLExpressions(t *testing.T) {
 		df := ReadCSV("../testdata/sample.csv")
 		result, err := df.
 			GroupBy(
-				"department",                              // SQL column
+				"department", // SQL column
 				Col("age").Gt(Lit(30)).Alias("is_senior"), // Fluent boolean grouping
 			).
 			Agg(

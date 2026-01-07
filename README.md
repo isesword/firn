@@ -86,7 +86,7 @@ While [SIMBA](https://github.com/miretskiy/simba) provides ultra-fast FFI for si
 
 ### Configure cgo linker search path
 ```shell
-export CGO_LDFLAGS="-L/path/to/libs"
+export CGO_LDFLAGS="-L/path/to/lib -Wl,-rpath,/path/to/lib"
 ```
 
 ### Basic DataFrame Operations
