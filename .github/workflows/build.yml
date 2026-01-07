@@ -103,12 +103,30 @@ jobs:
 
       - name: Package artifacts
         run: |
-          tar -czf "${{ matrix.package }}" \
-            "${{ matrix.lib-file }}" \
-            "${{ matrix.dynlib-file }}" \
-            "${{ matrix.importlib-file }}" \
-            polars/firn.h \
-            README.md
+          set -euo pipefail
+          
+          files=(
+            "${{ matrix.lib-file }}"
+            "${{ matrix.dynlib-file }}"
+            "polars/firn.h"
+            "README.md"
+          )
+          
+          if [ -n "${{ matrix.importlib-file || '' }}" ] && [ -f "${{ matrix.importlib-file || '' }}" ]; then
+            files+=("${{ matrix.importlib-file }}")
+          fi
+          
+          tar -czf "${{ matrix.package }}" "${files[@]}"
+          tar -tzf "${{ matrix.package }}"
+
+#      - name: Package artifacts
+#        run: |
+#          tar -czf "${{ matrix.package }}" \
+#            "${{ matrix.lib-file }}" \
+#            "${{ matrix.dynlib-file }}" \
+#            "${{ matrix.importlib-file }}" \
+#            polars/firn.h \
+#            README.md
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
