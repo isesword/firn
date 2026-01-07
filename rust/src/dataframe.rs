@@ -668,6 +668,18 @@ pub extern "C" fn dataframe_to_csv(handle: usize) -> *mut c_char {
     }
 }
 
+/// Free a string allocated by Rust
+/// IMPORTANT: This must be called from Go to free strings returned by Rust functions
+#[no_mangle]
+pub extern "C" fn free_rust_string(ptr: *mut c_char) {
+    if !ptr.is_null() {
+        unsafe {
+            // Reconstruct the CString and let it drop, which frees the memory
+            let _ = CString::from_raw(ptr);
+        }
+    }
+}
+
 /// Convert DataFrame to string representation (tabular format)
 #[no_mangle]
 pub extern "C" fn dataframe_to_string(handle: usize) -> *mut c_char {

@@ -213,6 +213,7 @@ typedef struct {
 FfiResult execute_operations(PolarsHandle handle, const Operation* operations, size_t count);
 int release_dataframe(uintptr_t handle);
 void free_string(char* error_message);
+void free_rust_string(char* ptr);
 
 // DataFrame introspection
 size_t dataframe_height(uintptr_t handle);
