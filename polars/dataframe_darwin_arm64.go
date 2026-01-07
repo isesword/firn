@@ -4,7 +4,7 @@ package polars
 
 /*
 #cgo CFLAGS: -I.
-#cgo LDFLAGS: -lfirn_darwin_arm64
+#cgo LDFLAGS: -lfirn
 #include "firn.h"
 */
 import "C"

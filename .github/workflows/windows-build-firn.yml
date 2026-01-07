@@ -1,0 +1,71 @@
+name: build-windows-gnu
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+jobs:
+  windows-gnu:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSYS2 (MINGW64)
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-toolchain
+            git
+
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          target: x86_64-pc-windows-gnu
+          cache: true
+
+      - name: Build Rust DLL for Go/cgo (windows amd64)
+        shell: msys2 {0}
+        run: |
+          bash ./build_rust_win.sh
+
+      - name: Verify outputs exist
+        shell: pwsh
+        run: |
+          $need = @(
+            "lib\firn.dll",
+            "lib\libfirn.dll.a"
+          )
+          foreach ($p in $need) {
+            if (!(Test-Path $p)) { throw "Missing required output: $p" }
+          }
+
+      - name: Create platform zip
+        shell: pwsh
+        run: |
+          $zipName = "firn_windows_amd64_gnu.zip"
+          $distDir = "dist"
+          New-Item -ItemType Directory -Force -Path $distDir | Out-Null
+
+          $zipPath = Join-Path $distDir $zipName
+          if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+
+          $files = @("lib\firn.dll", "lib\libfirn.dll.a")
+          if (Test-Path "lib\libfirn.a") { $files += "lib\libfirn.a" }
+          if (Test-Path "README.md") { $files += "README.md" }
+          if (Test-Path "LICENSE") { $files += "LICENSE" }
+
+          Compress-Archive -Path $files -DestinationPath $zipPath -Force
+          Write-Host "Created $zipPath"
+
+      - name: Upload artifact (zip named by platform)
+        uses: actions/upload-artifact@v4
+        with:
+          name: firn-windows-amd64-gnu
+          path: dist/firn_windows_amd64_gnu.zip
