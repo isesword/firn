@@ -8,7 +8,7 @@ mkdir -p ../lib
 
 # Set macOS deployment target to avoid version warnings
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    export MACOSX_DEPLOYMENT_TARGET=15.0
+    export MACOSX_DEPLOYMENT_TARGET=14.0
 fi
 
 # Build for release (native by default)
@@ -23,10 +23,22 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     cp "${TARGET_DIR}/lib${LIB_NAME}.a" "../lib/libfirn_darwin_arm64.a"
     echo "📦 Static library copied to: ../lib/libfirn_darwin_arm64.a"
     ls -la "../lib/libfirn_darwin_arm64.a"
+    # 复制动态链接库（.dylib）
+    if [ -f "${TARGET_DIR}/lib${LIB_NAME}.dylib" ]; then
+        cp "${TARGET_DIR}/lib${LIB_NAME}.dylib" "../lib/libfirn_darwin_arm64.dylib"
+        echo "📦 Dynamic library copied to: ../lib/libfirn_darwin_arm64.dylib"
+        ls -la "../lib/libfirn_darwin_arm64.dylib"
+    fi
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     cp "${TARGET_DIR}/lib${LIB_NAME}.a" "../lib/libfirn_linux_amd64.a"
     echo "📦 Static library copied to: ../lib/libfirn_linux_amd64.a"
     ls -la "../lib/libfirn_linux_amd64.a"
+    # 复制动态链接库（.so）
+    if [ -f "${TARGET_DIR}/lib${LIB_NAME}.so" ]; then
+        cp "${TARGET_DIR}/lib${LIB_NAME}.so" "../lib/libfirn_linux_amd64.so"
+        echo "📦 Dynamic library copied to: ../lib/libfirn_linux_amd64.so"
+        ls -la "../lib/libfirn_linux_amd64.so"
+    fi
 elif [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* || "$OSTYPE" == "win"* ]]; then
     # Build for MSVC target to match Windows runners
     cargo build --release --target x86_64-pc-windows-msvc
@@ -34,6 +46,12 @@ elif [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* || "$OSTYPE" == "win"* ]]
     cp "${TARGET_DIR}/${LIB_NAME}.lib" "../lib/firn_windows_amd64.lib"
     echo "📦 Static library copied to: ../lib/firn_windows_amd64.lib"
     ls -la "../lib/firn_windows_amd64.lib"
+    # 复制动态链接库（.dll）
+    if [ -f "${TARGET_DIR}/${LIB_NAME}.dll" ]; then
+        cp "${TARGET_DIR}/${LIB_NAME}.dll" "../lib/firn_windows_amd64.dll"
+        echo "📦 Dynamic library copied to: ../lib/firn_windows_amd64.dll"
+        ls -la "../lib/firn_windows_amd64.dll"
+    fi
 else
     echo "❌ Unsupported OS: $OSTYPE"
     exit 1

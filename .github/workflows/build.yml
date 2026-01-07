@@ -2,13 +2,10 @@ name: build
 
 on:
   push:
-    tags:
-      - "v*"
-      - "pre*"
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
-
-permissions:
-  contents: write
 
 jobs:
   build:
@@ -29,21 +26,23 @@ jobs:
             os: ubuntu-22.04
             rust-target: x86_64-unknown-linux-gnu
             lib-file: lib/libfirn_linux_amd64.a
+            dynlib-file: lib/libfirn_linux_amd64.so
             artifact: firn-linux-amd64
             package: firn-linux-amd64.tar.gz
           - name: macos
             os: macos-14
             rust-target: aarch64-apple-darwin
             lib-file: lib/libfirn_darwin_arm64.a
+            dynlib-file: lib/libfirn_darwin_arm64.dylib
             artifact: firn-macos-arm64
             package: firn-macos-arm64.tar.gz
           - name: windows
             os: windows-latest
             rust-target: x86_64-pc-windows-msvc
             lib-file: lib/firn_windows_amd64.lib
+            dynlib-file: lib/firn_windows_amd64.dll
             artifact: firn-windows-amd64
             package: firn-windows-amd64.tar.gz
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -85,24 +84,19 @@ jobs:
       - name: Build Rust static library
         run: ./scripts/build_rust.sh
 
-      - name: Package artifacts (library only)
-        run: |
-          test -f "${{ matrix.lib-file }}"
-          tar -czf "${{ matrix.package }}" "${{ matrix.lib-file }}"
+      # - name: Run Go tests (polars)
+      #   run: go test ./polars -v
 
-      - name: Upload artifact (workflow)
+      - name: Package artifacts
+        run: |
+          tar -czf "${{ matrix.package }}" \
+            "${{ matrix.lib-file }}" \
+            "${{ matrix.dynlib-file }}" \
+            polars/firn.h \
+            README.md
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
           path: ${{ matrix.package }}
-
-      - name: Upload package to GitHub Release (tag)
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
-          generate_release_notes: true
-          prerelease: ${{ startsWith(github.ref_name, 'pre') }}
-          files: |
-            ${{ matrix.package }}
