@@ -41,18 +41,51 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
         ls -la "../lib/libfirn_linux_amd64.so"
     fi
 elif [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* || "$OSTYPE" == "win"* ]]; then
-    # Build for MSVC target to match Windows runners
-    cargo build --release --target x86_64-pc-windows-msvc
-    TARGET_DIR="target/x86_64-pc-windows-msvc/release"
-    cp "${TARGET_DIR}/${LIB_NAME}.lib" "../lib/firn_windows_amd64.lib"
-    echo "📦 Static library copied to: ../lib/firn_windows_amd64.lib"
-    ls -la "../lib/firn_windows_amd64.lib"
-    # 复制动态链接库（.dll）
+    # Build for MinGW/GNU target (commonly used with cgo + gcc on Windows)
+    cargo build --release --target x86_64-pc-windows-gnu
+    TARGET_DIR="target/x86_64-pc-windows-gnu/release"
+
+    # 复制静态库（staticlib -> .a）
+    if [ -f "${TARGET_DIR}/lib${LIB_NAME}.a" ]; then
+        cp "${TARGET_DIR}/lib${LIB_NAME}.a" "../lib/libfirn_windows_amd64.a"
+        echo "📦 Static library copied to: ../lib/libfirn_windows_amd64.a"
+        ls -la "../lib/libfirn_windows_amd64.a"
+    else
+        echo "⚠️  Static library not found: ${TARGET_DIR}/lib${LIB_NAME}.a"
+        ls -la "${TARGET_DIR}" || true
+    fi
+
+    # 复制动态链接库（cdylib -> .dll）
     if [ -f "${TARGET_DIR}/${LIB_NAME}.dll" ]; then
         cp "${TARGET_DIR}/${LIB_NAME}.dll" "../lib/firn_windows_amd64.dll"
         echo "📦 Dynamic library copied to: ../lib/firn_windows_amd64.dll"
         ls -la "../lib/firn_windows_amd64.dll"
+    else
+        echo "⚠️  DLL not found: ${TARGET_DIR}/${LIB_NAME}.dll"
     fi
+
+    # 复制 DLL 导入库（import library for gcc -> .dll.a）
+    if [ -f "${TARGET_DIR}/lib${LIB_NAME}.dll.a" ]; then
+        cp "${TARGET_DIR}/lib${LIB_NAME}.dll.a" "../lib/libfirn_windows_amd64.dll.a"
+        echo "📦 Import library copied to: ../lib/libfirn_windows_amd64.dll.a"
+        ls -la "../lib/libfirn_windows_amd64.dll.a"
+    else
+        echo "⚠️  Import library not found: ${TARGET_DIR}/lib${LIB_NAME}.dll.a"
+        # 并非所有构建都会生成（例如只产静态库时），所以这里仅提示
+    fi
+#elif [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* || "$OSTYPE" == "win"* ]]; then
+#    # Build for MSVC target to match Windows runners
+#    cargo build --release --target x86_64-pc-windows-msvc
+#    TARGET_DIR="target/x86_64-pc-windows-msvc/release"
+#    cp "${TARGET_DIR}/${LIB_NAME}.lib" "../lib/firn_windows_amd64.lib"
+#    echo "📦 Static library copied to: ../lib/firn_windows_amd64.lib"
+#    ls -la "../lib/firn_windows_amd64.lib"
+#    # 复制动态链接库（.dll）
+#    if [ -f "${TARGET_DIR}/${LIB_NAME}.dll" ]; then
+#        cp "${TARGET_DIR}/${LIB_NAME}.dll" "../lib/firn_windows_amd64.dll"
+#        echo "📦 Dynamic library copied to: ../lib/firn_windows_amd64.dll"
+#        ls -la "../lib/firn_windows_amd64.dll"
+#    fi
 else
     echo "❌ Unsupported OS: $OSTYPE"
     exit 1
