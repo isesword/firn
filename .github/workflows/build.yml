@@ -1,9 +1,6 @@
 name: build
 
 on:
-  tags:
-    - "v*"
-    - "pre*"
   push:
     branches: [main]
   pull_request:
