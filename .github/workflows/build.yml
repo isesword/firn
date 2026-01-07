@@ -1,10 +1,16 @@
 name: build
 
+#on:
+#  push:
+#    branches: [main]
+#  pull_request:
+#    branches: [main]
+#  workflow_dispatch:
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    tags:
+      - "v*"
+      - "pre*"
   workflow_dispatch:
 
 jobs:
@@ -38,11 +44,19 @@ jobs:
             package: firn-macos-arm64.tar.gz
           - name: windows
             os: windows-latest
-            rust-target: x86_64-pc-windows-msvc
-            lib-file: lib/firn_windows_amd64.lib
+            rust-target: x86_64-pc-windows-gnu
+            lib-file: lib/libfirn_windows_amd64.a
             dynlib-file: lib/firn_windows_amd64.dll
+            importlib-file: lib/libfirn_windows_amd64.dll.a
             artifact: firn-windows-amd64
             package: firn-windows-amd64.tar.gz
+#          - name: windows
+#            os: windows-latest
+#            rust-target: x86_64-pc-windows-msvc
+#            lib-file: lib/firn_windows_amd64.lib
+#            dynlib-file: lib/firn_windows_amd64.dll
+#            artifact: firn-windows-amd64
+#            package: firn-windows-amd64.tar.gz
     steps:
       - name: Checkout
         uses: actions/checkout@v4
