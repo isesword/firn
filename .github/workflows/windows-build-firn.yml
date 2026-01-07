@@ -33,6 +33,8 @@ jobs:
       - name: Build Rust DLL for Go/cgo (windows amd64)
         shell: msys2 {0}
         run: |
+          # Add Windows Rust toolchain to PATH for MSYS2 shell
+          export PATH="$HOME/.cargo/bin:/c/Users/runneradmin/.cargo/bin:$PATH"
           bash ./scripts/build_rust_win.sh
 
       - name: Verify outputs exist
