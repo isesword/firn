@@ -33,7 +33,7 @@ jobs:
       - name: Build Rust DLL for Go/cgo (windows amd64)
         shell: msys2 {0}
         run: |
-          bash ./build_rust_win.sh
+          bash ./scripts/build_rust_win.sh
 
       - name: Verify outputs exist
         shell: pwsh
