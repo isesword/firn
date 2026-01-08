@@ -37,6 +37,12 @@ jobs:
           toolchain: stable-x86_64-pc-windows-gnu
           cache: true
 
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+          cache: true
+
       - name: Force Rust GNU toolchain (target + linker)
         shell: msys2 {0}
         run: |
@@ -93,8 +99,9 @@ jobs:
         run: |
           # 1. 设置 PATH
           # 注意：这里我们将项目根目录下的 lib 文件夹转换为绝对路径并加入 PATH
-          #这是为了让 Go 测试在运行时能加载到 firn.dll
-          export PATH="/mingw64/bin:$HOME/.cargo/bin:/c/Users/runneradmin/.cargo/bin:$(pwd)/lib:$PATH"
+          # 这是为了让 Go 测试在运行时能加载到 firn.dll
+          # 同时添加 Go 的路径（GitHub Actions 默认安装在 /c/hostedtoolcache/go/）
+          export PATH="/mingw64/bin:$HOME/.cargo/bin:/c/Users/runneradmin/.cargo/bin:$(pwd)/lib:/c/hostedtoolcache/windows/go/stable/x64/bin:$PATH"
 
           # 2. 配置 CGO 环境变量
           export CGO_ENABLED=1
@@ -117,6 +124,9 @@ jobs:
           echo "CC=$CC"
           which $CC
           echo "Path includes lib: $(pwd)/lib"
+          echo "Checking Go installation:"
+          which go || echo "go not found in PATH"
+          go version || echo "go command failed"
           
           # 4. 进入目录并运行测试
           cd polars
