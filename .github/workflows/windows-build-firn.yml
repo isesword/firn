@@ -9,6 +9,13 @@ on:
 jobs:
   windows-gnu:
     runs-on: windows-latest
+    env:
+      CARGO_BUILD_TARGET: x86_64-pc-windows-gnu
+      CARGO_TARGET_X86_64_PC_WINDOWS_GNU_LINKER: x86_64-w64-mingw32-gcc
+      CC_x86_64_pc_windows_gnu: x86_64-w64-mingw32-gcc
+      CXX_x86_64_pc_windows_gnu: x86_64-w64-mingw32-g++
+      AR_x86_64_pc_windows_gnu: x86_64-w64-mingw32-ar
+      RUSTUP_TOOLCHAIN: stable-x86_64-pc-windows-gnu
 
     steps:
       - name: Checkout
@@ -29,12 +36,48 @@ jobs:
           toolchain: stable-x86_64-pc-windows-gnu
           cache: true
 
+      - name: Force Rust GNU toolchain (target + linker)
+        shell: msys2 {0}
+        run: |
+          set -euo pipefail
+          export PATH="/mingw64/bin:$PATH"
+
+          # 1) 明确使用 GNU 目标三元组（cargo/rustc）
+          rustup target add x86_64-pc-windows-gnu || true
+
+          # 2) 明确指定链接器为 MinGW gcc（强制走 GNU link 路线）
+          :
+
+          # 3) 防止 MSVC 环境污染
+          unset CL CFLAGS CXXFLAGS LIB INCLUDE LIBPATH
+
+          # 4) 打印确认
+          echo "CARGO_BUILD_TARGET=$CARGO_BUILD_TARGET"
+          echo "CARGO_TARGET_X86_64_PC_WINDOWS_GNU_LINKER=$CARGO_TARGET_X86_64_PC_WINDOWS_GNU_LINKER"
+          rustc -vV
+          cargo -vV
+          x86_64-w64-mingw32-gcc --version
+
       - name: Build Rust DLL for Go/cgo (windows amd64)
         shell: msys2 {0}
         run: |
           # Add Windows Rust toolchain to PATH for MSYS2 shell
-          export PATH="$HOME/.cargo/bin:/c/Users/runneradmin/.cargo/bin:$PATH"
+          export PATH="/mingw64/bin:$HOME/.cargo/bin:/c/Users/runneradmin/.cargo/bin:$PATH"
+          unset CL CFLAGS CXXFLAGS LIB INCLUDE LIBPATH
           bash ./scripts/build_rust_win.sh
+
+      # copy dll与dll.a到lib目录
+      - name: Copy dll与dll.a到lib目录
+        run: |
+          mkdir lib
+          copy /Y target\release\firn.dll lib\
+          copy /Y target\release\libfirn.dll.a lib\
+      
+      # 进入 polars 运行 go test -v -run="^TestEsword"
+      - name: 进入 polars 运行 go test -v -run="^TestEsword"
+        run: |
+          cd polars
+          go test -v -run="^TestEsword"
 
       - name: Verify outputs exist
         shell: pwsh
@@ -46,6 +89,35 @@ jobs:
           foreach ($p in $need) {
             if (!(Test-Path $p)) { throw "Missing required output: $p" }
           }
+
+      - name: Force Go CGO to use MinGW (windows-gnu)
+        shell: msys2 {0}
+        run: |
+          set -euo pipefail
+
+          # 1) 启用 CGO
+          export CGO_ENABLED=1
+
+          # 2) 明确 Go 使用 MinGW 工具链
+          export CC=x86_64-w64-mingw32-gcc
+          export CXX=x86_64-w64-mingw32-g++
+          export AR=x86_64-w64-mingw32-ar
+
+          # 3) 防止 Go 误用 MSVC
+          unset CL
+          unset CFLAGS
+          unset CXXFLAGS
+
+          # 4) 确保 MinGW 在 PATH 前面
+          export PATH="/mingw64/bin:$PATH"
+
+          # 5) 打印确认信息
+          echo "CGO_ENABLED=$CGO_ENABLED"
+          echo "CC=$CC"
+          echo "CXX=$CXX"
+          go env | grep -E 'CGO|CC|CXX|GOOS|GOARCH'
+
+          x86_64-w64-mingw32-gcc --version
 
       - name: Create platform zip
         shell: pwsh

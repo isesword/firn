@@ -599,7 +599,7 @@ func (df *DataFrame) ToCsv() (string, error) {
 	}
 
 	csvString := C.GoString(csvPtr)
-	C.free_rust_string(csvPtr) // Free Rust-allocated memory
+	C.free(unsafe.Pointer(csvPtr)) // Free C memory
 	return csvString, nil
 }
 
@@ -618,7 +618,7 @@ func (df *DataFrame) String() string {
 	}
 
 	displayString := C.GoString(displayPtr)
-	C.free_rust_string(displayPtr) // Free Rust-allocated memory
+	C.free(unsafe.Pointer(displayPtr))
 	return displayString
 }
 

@@ -668,13 +668,11 @@ pub extern "C" fn dataframe_to_csv(handle: usize) -> *mut c_char {
     }
 }
 
-/// Free a string allocated by Rust
-/// IMPORTANT: This must be called from Go to free strings returned by Rust functions
+/// Free C string memory
 #[no_mangle]
-pub extern "C" fn free_rust_string(ptr: *mut c_char) {
+pub extern "C" fn free_string(ptr: *mut c_char) {
     if !ptr.is_null() {
         unsafe {
-            // Reconstruct the CString and let it drop, which frees the memory
             let _ = CString::from_raw(ptr);
         }
     }
@@ -716,16 +714,6 @@ pub extern "C" fn release_dataframe(handle: usize) -> c_int {
         }
     }
     0 // Return success
-}
-
-/// Free C string memory
-#[no_mangle]
-pub extern "C" fn free_string(ptr: *mut c_char) {
-    if !ptr.is_null() {
-        unsafe {
-            let _ = CString::from_raw(ptr);
-        }
-    }
 }
 
 /// Benchmark helper - no-op function for measuring CGO overhead
