@@ -32,6 +32,25 @@ echo "[build_rust_win] crate_dir=${CRATE_DIR}"
 echo "[build_rust_win] target=${TARGET}"
 echo "[build_rust_win] profile=${PROFILE}"
 
+# On Windows hosts, guard against mixing MSVC and GNU/MinGW toolchains
+if [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* || "$OSTYPE" == "win"* ]]; then
+  rust_host="$(rustc -vV | sed -n 's/^host: //p')"
+  echo "[build_rust_win] rustc host=${rust_host}"
+
+  # Ensure we are building a GNU (MinGW) target, not MSVC
+  if [[ "$TARGET" != *-pc-windows-gnu ]]; then
+    echo "[build_rust_win] ERROR: On Windows host, TARGET must be a *-pc-windows-gnu triple to use MinGW/GNU toolchain. Got: ${TARGET}"
+    exit 1
+  fi
+
+  # Prevent using MSVC Rust toolchain with a GNU target
+  if [[ "${rust_host}" == *-pc-windows-msvc ]]; then
+    echo "[build_rust_win] ERROR: Detected MSVC Rust toolchain (${rust_host}) on Windows, which will conflict with GNU/MinGW target."
+    echo "[build_rust_win] Please install and use the x86_64-pc-windows-gnu Rust toolchain (e.g. 'rustup toolchain install stable-x86_64-pc-windows-gnu')."
+    exit 1
+  fi
+fi
+
 cargo build --release --target "${TARGET}"
 
 TARGET_DIR="target/${TARGET}/${PROFILE}"
