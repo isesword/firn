@@ -60,6 +60,17 @@ jobs:
           cargo -vV
           x86_64-w64-mingw32-gcc --version
 
+      - name: Verify MinGW tools availability
+        shell: msys2 {0}
+        run: |
+          export PATH="/mingw64/bin:$PATH"
+          echo "Checking for required MinGW tools:"
+          which x86_64-w64-mingw32-gcc || echo "gcc not found"
+          which x86_64-w64-mingw32-g++ || echo "g++ not found"
+          which x86_64-w64-mingw32-ar || echo "ar not found"
+          which ar || echo "ar not found"
+          ls -la /mingw64/bin/ | grep -E '(gcc|g\+\+|ar)' || true
+
       - name: Build Rust DLL for Go/cgo (windows amd64)
         shell: msys2 {0}
         run: |
@@ -71,7 +82,8 @@ jobs:
           export CARGO_TARGET_X86_64_PC_WINDOWS_GNU_LINKER=x86_64-w64-mingw32-gcc
           export CC_x86_64_pc_windows_gnu=x86_64-w64-mingw32-gcc
           export CXX_x86_64_pc_windows_gnu=x86_64-w64-mingw32-g++
-          export AR_x86_64_pc_windows_gnu=x86_64-w64-mingw32-ar
+          # In MSYS2 MINGW64, the ar tool might be named just 'ar' instead of prefixed
+          export AR_x86_64_pc_windows_gnu=ar
           
           unset CL CFLAGS CXXFLAGS LIB INCLUDE LIBPATH
           bash ./scripts/build_rust_win.sh
