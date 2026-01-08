@@ -26,9 +26,20 @@ serde_json = "1.0"
 thiserror = "1.0"
 regex = "1.11"
 
+# [profile.release]
+# opt-level = "z"
+# lto = true
+# codegen-units = 1
+# panic = "abort"
+# strip = true
 [profile.release]
-opt-level = "z"
-lto = true
-codegen-units = 1
-panic = "abort"
+codegen-units = 16
+lto = "thin"
 strip = true
+debug = false
+# 👇 新增这一行 👇
+panic = "abort"
+
+# 👇 新增整个区块 👇
+[target.x86_64-pc-windows-gnu]
+rustflags = ["-C", "target-feature=+crt-static"]
