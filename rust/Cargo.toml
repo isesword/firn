@@ -39,7 +39,3 @@ strip = true
 debug = false
 # 👇 新增这一行 👇
 panic = "abort"
-
-# 👇 新增整个区块 👇
-[target.x86_64-pc-windows-gnu]
-rustflags = ["-C", "target-feature=+crt-static"]
