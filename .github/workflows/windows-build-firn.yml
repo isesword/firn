@@ -91,14 +91,46 @@ jobs:
       # copy dll与dll.a到lib目录
       - name: Copy dll与dll.a到lib目录
         run: |
-          mkdir lib
+          if (-not (Test-Path lib)) { New-Item -ItemType Directory -Path lib }
           copy /Y target\release\firn.dll lib\
           copy /Y target\release\libfirn.dll.a lib\
       
-      # 进入 polars 运行 go test -v -run="^TestEsword"
-      - name: 进入 polars 运行 go test -v -run="^TestEsword"
+      - name: Run Go Tests with MinGW Toolchain
+        shell: msys2 {0}
         run: |
+          # 1. 设置 PATH
+          # 注意：这里我们将项目根目录下的 lib 文件夹转换为绝对路径并加入 PATH
+          #这是为了让 Go 测试在运行时能加载到 firn.dll
+          export PATH="/mingw64/bin:$HOME/.cargo/bin:/c/Users/runneradmin/.cargo/bin:$(pwd)/lib:$PATH"
+
+          # 2. 配置 CGO 环境变量
+          export CGO_ENABLED=1
+          
+          # 在 MSYS2 内部，直接用 gcc/g++/ar 通常是最安全的
+          # 如果一定要指定架构前缀，请确保该命令存在
+          if command -v x86_64-w64-mingw32-gcc &> /dev/null; then
+              export CC=x86_64-w64-mingw32-gcc
+              export CXX=x86_64-w64-mingw32-g++
+              export AR=x86_64-w64-mingw32-ar
+          else
+              export CC=gcc
+              export CXX=g++
+              export AR=ar
+          fi
+
+          # 3. 验证环境
+          echo "=== Environment Info ==="
+          echo "CGO_ENABLED=$CGO_ENABLED"
+          echo "CC=$CC"
+          which $CC
+          echo "Path includes lib: $(pwd)/lib"
+          
+          # 4. 进入目录并运行测试
           cd polars
+          
+          # 5. 运行测试
+          # -v 打印详情
+          # 如果你的 Go 代码里用了 cgo LDFLAGS 指向 ../lib，编译应该没问题
           go test -v -run="^TestEsword"
 
       - name: Verify outputs exist
@@ -111,35 +143,6 @@ jobs:
           foreach ($p in $need) {
             if (!(Test-Path $p)) { throw "Missing required output: $p" }
           }
-
-      - name: Force Go CGO to use MinGW (windows-gnu)
-        shell: msys2 {0}
-        run: |
-          set -euo pipefail
-
-          # 1) 启用 CGO
-          export CGO_ENABLED=1
-
-          # 2) 明确 Go 使用 MinGW 工具链
-          export CC=x86_64-w64-mingw32-gcc
-          export CXX=x86_64-w64-mingw32-g++
-          export AR=x86_64-w64-mingw32-ar
-
-          # 3) 防止 Go 误用 MSVC
-          unset CL
-          unset CFLAGS
-          unset CXXFLAGS
-
-          # 4) 确保 MinGW 在 PATH 前面
-          export PATH="/mingw64/bin:$PATH"
-
-          # 5) 打印确认信息
-          echo "CGO_ENABLED=$CGO_ENABLED"
-          echo "CC=$CC"
-          echo "CXX=$CXX"
-          go env | grep -E 'CGO|CC|CXX|GOOS|GOARCH'
-
-          x86_64-w64-mingw32-gcc --version
 
       - name: Create platform zip
         shell: pwsh
