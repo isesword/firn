@@ -40,7 +40,8 @@ jobs:
         shell: msys2 {0}
         run: |
           set -euo pipefail
-          export PATH="/mingw64/bin:$PATH"
+          # Ensure Rust tools are visible in MSYS2 shell.
+          export PATH="/mingw64/bin:$HOME/.cargo/bin:/c/Users/runneradmin/.cargo/bin:$PATH"
 
           # 1) 明确使用 GNU 目标三元组（cargo/rustc）
           rustup target add x86_64-pc-windows-gnu || true
