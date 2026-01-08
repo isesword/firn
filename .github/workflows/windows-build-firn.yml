@@ -88,13 +88,6 @@ jobs:
           unset CL CFLAGS CXXFLAGS LIB INCLUDE LIBPATH
           bash ./scripts/build_rust_win.sh
 
-      # copy dll与dll.a到lib目录
-      - name: Copy dll与dll.a到lib目录
-        run: |
-          if (-not (Test-Path lib)) { New-Item -ItemType Directory -Path lib }
-          Copy-Item -Path target\release\firn.dll -Destination lib\ -Force
-          Copy-Item -Path target\release\libfirn.dll.a -Destination lib\ -Force
-      
       - name: Run Go Tests with MinGW Toolchain
         shell: msys2 {0}
         run: |
