@@ -92,8 +92,8 @@ jobs:
       - name: Copy dll与dll.a到lib目录
         run: |
           if (-not (Test-Path lib)) { New-Item -ItemType Directory -Path lib }
-          copy /Y target\release\firn.dll lib\
-          copy /Y target\release\libfirn.dll.a lib\
+          Copy-Item -Path target\release\firn.dll -Destination lib\ -Force
+          Copy-Item -Path target\release\libfirn.dll.a -Destination lib\ -Force
       
       - name: Run Go Tests with MinGW Toolchain
         shell: msys2 {0}
