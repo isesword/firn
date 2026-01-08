@@ -11,15 +11,15 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     export MACOSX_DEPLOYMENT_TARGET=14.0
 fi
 
-# Build for release (native by default)
-cargo build --release
-
 echo "✅ Rust library built successfully"
 
 LIB_NAME="firn"
-TARGET_DIR="target/release"
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
+    # Build for release (native by default)
+    cargo build --release
+    TARGET_DIR="target/release"
+
     # 原先带有 darwin_arm64 后缀的命名保留为注释，仅使用原始库名
     # cp "${TARGET_DIR}/lib${LIB_NAME}.a" "../lib/libfirn_darwin_arm64.a"
     cp "${TARGET_DIR}/lib${LIB_NAME}.a" "../lib/lib${LIB_NAME}.a"
@@ -35,6 +35,10 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         install_name_tool -id "@rpath/lib${LIB_NAME}.dylib" "../lib/lib${LIB_NAME}.dylib"
     fi
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # Build for release (native by default)
+    cargo build --release
+    TARGET_DIR="target/release"
+
     # 原先带有 linux_amd64 后缀的命名保留为注释，仅使用原始库名
     # cp "${TARGET_DIR}/lib${LIB_NAME}.a" "../lib/libfirn_linux_amd64.a"
     cp "${TARGET_DIR}/lib${LIB_NAME}.a" "../lib/lib${LIB_NAME}.a"
