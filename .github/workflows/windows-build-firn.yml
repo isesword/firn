@@ -28,6 +28,7 @@ jobs:
           update: true
           install: >-
             mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-binutils
             git
 
       - name: Setup Rust toolchain
