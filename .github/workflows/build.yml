@@ -172,13 +172,27 @@ jobs:
         if: runner.os != 'Windows'
         run: ./scripts/build_rust.sh
 
-      # - name: Run Go tests (polars)
-      #   run: |
-      #     export LD_LIBRARY_PATH="${PWD}/lib:${LD_LIBRARY_PATH:-}"
-      #     go test ./polars -v -run="^TestEsword"
+      - name: Run Go tests (polars) - Linux/Debian
+        if: runner.os == 'Linux' || matrix.name == 'debian'
+        run: |
+          export LD_LIBRARY_PATH="${PWD}/lib:${LD_LIBRARY_PATH:-}"
+          export CGO_LDFLAGS="-L${PWD}/lib -lfirn"
+          go test ./polars -v -run="^TestEsword"
 
-      - name: Run Go tests (polars)
-        run: go test ./polars -v -run="^TestEsword"
+      - name: Run Go tests (polars) - macOS
+        if: runner.os == 'macOS'
+        run: |
+          export DYLD_LIBRARY_PATH="${PWD}/lib:${DYLD_LIBRARY_PATH:-}"
+          export CGO_LDFLAGS="-L${PWD}/lib -Wl,-rpath,${PWD}/lib -lfirn"
+          go test ./polars -v -run="^TestEsword"
+
+      - name: Run Go tests (polars) - Windows
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: |
+          export PATH="/c/hostedtoolcache/windows/go/stable/x64/bin:${PWD}/lib:${PATH}"
+          export CGO_LDFLAGS="-L${PWD}/lib -lfirn"
+          go test ./polars -v -run="^TestEsword"
 
       - name: Package artifacts
         run: |
