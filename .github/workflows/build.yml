@@ -28,35 +28,35 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - name: linux
-          #   os: ubuntu-22.04
-          #   rust-target: x86_64-unknown-linux-gnu
-          #   lib-file: lib/libfirn.a
-          #   dynlib-file: lib/libfirn.so
-          #   artifact: firn-linux-amd64
-          #   package: firn-linux-amd64.tar.gz
-          # - name: macos
-          #   os: macos-14
-          #   rust-target: aarch64-apple-darwin
-          #   lib-file: lib/libfirn.a
-          #   dynlib-file: lib/libfirn.dylib
-          #   artifact: firn-macos-arm64
-          #   package: firn-macos-arm64.tar.gz
-          - name: windows
-            os: windows-latest
-            rust-target: x86_64-pc-windows-gnu
+          - name: linux
+            os: ubuntu-22.04
+            rust-target: x86_64-unknown-linux-gnu
             lib-file: lib/libfirn.a
-            dynlib-file: lib/firn.dll
-            importlib-file: lib/libfirn.dll.a
-            artifact: firn-windows-amd64
-            package: firn-windows-amd64.tar.gz
-#          - name: windows
-#            os: windows-latest
-#            rust-target: x86_64-pc-windows-msvc
-#            lib-file: lib/firn_windows_amd64.lib
-#            dynlib-file: lib/firn_windows_amd64.dll
-#            artifact: firn-windows-amd64
-#            package: firn-windows-amd64.tar.gz
+            dynlib-file: lib/libfirn.so
+            artifact: firn-linux-amd64
+            package: firn-linux-amd64.tar.gz
+          - name: macos
+            os: macos-14
+            rust-target: aarch64-apple-darwin
+            lib-file: lib/libfirn.a
+            dynlib-file: lib/libfirn.dylib
+            artifact: firn-macos-arm64
+            package: firn-macos-arm64.tar.gz
+    #          - name: windows
+    #            os: windows-latest
+    #            rust-target: x86_64-pc-windows-gnu
+    #            lib-file: lib/libfirn.a
+    #            dynlib-file: lib/firn.dll
+    #            importlib-file: lib/libfirn.dll.a
+    #            artifact: firn-windows-amd64
+    #            package: firn-windows-amd64.tar.gz
+    #          - name: windows
+    #            os: windows-latest
+    #            rust-target: x86_64-pc-windows-msvc
+    #            lib-file: lib/firn_windows_amd64.lib
+    #            dynlib-file: lib/firn_windows_amd64.dll
+    #            artifact: firn-windows-amd64
+    #            package: firn-windows-amd64.tar.gz
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -171,14 +171,14 @@ jobs:
           tar -czf "${{ matrix.package }}" "${files[@]}"
           tar -tzf "${{ matrix.package }}"
 
-#      - name: Package artifacts
-#        run: |
-#          tar -czf "${{ matrix.package }}" \
-#            "${{ matrix.lib-file }}" \
-#            "${{ matrix.dynlib-file }}" \
-#            "${{ matrix.importlib-file }}" \
-#            polars/firn.h \
-#            README.md
+      #      - name: Package artifacts
+      #        run: |
+      #          tar -czf "${{ matrix.package }}" \
+      #            "${{ matrix.lib-file }}" \
+      #            "${{ matrix.dynlib-file }}" \
+      #            "${{ matrix.importlib-file }}" \
+      #            polars/firn.h \
+      #            README.md
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
