@@ -1,4 +1,4 @@
-module github.com/miretskiy/firn
+module github.com/isesword/firn
 
 go 1.24.0
 

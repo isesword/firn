@@ -95,7 +95,7 @@ package main
 
 import (
     "fmt"
-    "github.com/miretskiy/firn/polars"
+    "github.com/isesword/firn/polars"
 )
 
 func main() {
@@ -176,7 +176,7 @@ df := polars.FromMap(data)
 Since this project requires compiling Rust libraries, you cannot use `go get` directly. You must build from source:
 
 ```bash
-git clone https://github.com/miretskiy/firn
+git clone https://github.com/isesword/firn
 cd firn
 
 # Build Rust library and Go bindings
@@ -193,7 +193,7 @@ CGO_LDFLAGS="-w" go test -v ./polars
 After building, you can import and use Firn in your Go projects:
 
 ```go
-import "github.com/miretskiy/firn/polars"
+import "github.com/isesword/firn/polars"
 ```
 
 ### Suppressing Linker Warnings ⚠️ **macOS Users**
