@@ -2,7 +2,7 @@ use crate::{
     execute_expr_ops, ContextType, ExecutionContext, FfiResult, JoinArgs, JoinType, LimitArgs, 
     NullsOrdering, Operation, PolarsHandle, QueryArgs, RawStr, SortArgs, SortDirection, 
     ERROR_INVALID_UTF8, ERROR_NULL_ARGS, ERROR_NULL_HANDLE, ERROR_POLARS_OPERATION,
-    FromMemoryArgs, ColumnData, ColumnValue,
+    FromMemoryArgs,
 };
 use polars::prelude::{DataFrame, LazyFrame, LazyGroupBy, Expr, col, len, CsvWriter, 
     concat, UnionArgs, SortMultipleOptions, Series, Column, PolarsError, JoinArgs as PolarJoinArgs, JoinCoalesce,

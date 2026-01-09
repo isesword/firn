@@ -11,8 +11,6 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     export MACOSX_DEPLOYMENT_TARGET=14.0
 fi
 
-echo "✅ Rust library built successfully"
-
 LIB_NAME="firn"
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -105,4 +103,5 @@ else
     exit 1
 fi
 
+echo "✅ Rust library built successfully"
 echo "🎉 Build complete!"
