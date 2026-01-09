@@ -1,6 +1,31 @@
 use crate::{FfiResult, RawStr, ERROR_POLARS_OPERATION};
 use polars::prelude::*;
 
+/// Column value for FromMemory operation
+#[repr(C)]
+pub struct ColumnValue {
+    pub value_type: u8, // 0=int64, 1=float64, 2=string, 3=bool, 4=null
+    pub int_value: i64,
+    pub float_value: f64,
+    pub string_value: RawStr,
+    pub bool_value: bool,
+}
+
+/// Column data for FromMemory operation
+#[repr(C)]
+pub struct ColumnData {
+    pub name: RawStr,
+    pub values: *const ColumnValue,
+    pub len: usize,
+}
+
+/// Arguments for FromMemory operation
+#[repr(C)]
+pub struct FromMemoryArgs {
+    pub columns: *const ColumnData,
+    pub column_count: usize,
+}
+
 /// Arguments for column reference operations
 #[repr(C)]
 pub struct ColumnArgs {

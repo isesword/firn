@@ -27,6 +27,7 @@ const (
 	OpLimit       = 15
 	OpQuery       = 16
 	OpJoin        = 17
+	OpFromMemory  = 18
 
 	// Expression operations (stack-based)
 	OpExprColumn         = 100

@@ -1037,3 +1037,147 @@ func TestEswordJoinOperations(t *testing.T) {
 		require.Equal(t, expected, result.String())
 	})
 }
+
+// TestEswordFromMemory tests creating DataFrames from in-memory Go data
+func TestEswordFromMemory(t *testing.T) {
+	t.Run("FromColumnsBasic", func(t *testing.T) {
+		columns := map[string][]any{
+			"name":   []any{"Alice", "Bob", "Charlie"},
+			"age":    []any{int64(30), int64(25), int64(35)},
+			"salary": []any{50000.0, 45000.0, 75000.0},
+		}
+
+		df := FromColumns(columns)
+		result, err := df.Collect()
+		require.NoError(t, err)
+		defer result.Release()
+
+		// Verify data is loaded correctly
+		output := result.String()
+		require.Contains(t, output, "Alice")
+		require.Contains(t, output, "Bob")
+		require.Contains(t, output, "Charlie")
+		require.Contains(t, output, "30")
+		require.Contains(t, output, "50000")
+	})
+
+	t.Run("FromColumnsWithOperations", func(t *testing.T) {
+		columns := map[string][]any{
+			"name":   []any{"Alice", "Bob", "Charlie", "David"},
+			"age":    []any{int64(30), int64(25), int64(35), int64(28)},
+			"salary": []any{50000.0, 45000.0, 75000.0, 52000.0},
+		}
+
+		df := FromColumns(columns)
+		result, err := df.
+			Filter(Col("age").Gt(Lit(27))). // age > 27
+			Select("name", "age", "salary").
+			Sort([]string{"salary"}).
+			Collect()
+		require.NoError(t, err)
+		defer result.Release()
+
+		// Verify filtering and sorting work
+		output := result.String()
+		require.Contains(t, output, "Alice")
+		require.Contains(t, output, "Charlie")
+		require.Contains(t, output, "David")
+		require.NotContains(t, output, "Bob") // Bob is 25, filtered out
+	})
+
+	t.Run("FromRecordsBasic", func(t *testing.T) {
+		records := []map[string]any{
+			{"name": "Alice", "age": int64(30), "salary": 50000.0},
+			{"name": "Bob", "age": int64(25), "salary": 45000.0},
+			{"name": "Charlie", "age": int64(35), "salary": 75000.0},
+		}
+
+		df := FromRecords(records)
+		result, err := df.Collect()
+		require.NoError(t, err)
+		defer result.Release()
+
+		output := result.String()
+		require.Contains(t, output, "Alice")
+		require.Contains(t, output, "Bob")
+		require.Contains(t, output, "Charlie")
+	})
+
+	t.Run("FromColumnsWithNulls", func(t *testing.T) {
+		columns := map[string][]any{
+			"name":   []any{"Alice", "Bob", nil, "David"},
+			"age":    []any{int64(30), nil, int64(35), int64(28)},
+			"salary": []any{50000.0, 45000.0, 75000.0, nil},
+		}
+
+		df := FromColumns(columns)
+		result, err := df.Collect()
+		require.NoError(t, err)
+		defer result.Release()
+
+		// Verify nulls are handled
+		output := result.String()
+		require.Contains(t, output, "null")
+		require.Contains(t, output, "Alice")
+	})
+
+	t.Run("FromColumnsWithBooleans", func(t *testing.T) {
+		columns := map[string][]any{
+			"name":      []any{"Alice", "Bob", "Charlie"},
+			"age":       []any{int64(30), int64(25), int64(35)},
+			"is_active": []any{true, false, true},
+		}
+
+		df := FromColumns(columns)
+		result, err := df.Collect()
+		require.NoError(t, err)
+		defer result.Release()
+
+		output := result.String()
+		require.Contains(t, output, "true")
+		require.Contains(t, output, "false")
+	})
+
+	t.Run("FromColumnsWithGroupBy", func(t *testing.T) {
+		columns := map[string][]any{
+			"department": []any{"Eng", "Eng", "Sales", "Sales", "Eng"},
+			"salary":     []any{50000.0, 60000.0, 40000.0, 45000.0, 55000.0},
+		}
+
+		df := FromColumns(columns)
+		result, err := df.
+			GroupBy("department").
+			Agg(
+				Col("salary").Mean().Alias("avg_salary"),
+				Col("salary").Sum().Alias("total_salary"),
+			).
+			Sort([]string{"department"}).
+			Collect()
+		require.NoError(t, err)
+		defer result.Release()
+
+		output := result.String()
+		require.Contains(t, output, "Eng")
+		require.Contains(t, output, "Sales")
+		require.Contains(t, output, "avg_salary")
+	})
+
+	t.Run("EmptyColumns", func(t *testing.T) {
+		columns := map[string][]any{}
+		df := FromColumns(columns)
+		_, err := df.Collect()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "cannot be empty")
+	})
+
+	t.Run("MismatchedLengths", func(t *testing.T) {
+		columns := map[string][]any{
+			"name": []any{"Alice", "Bob"},
+			"age":  []any{int64(30), int64(25), int64(35)}, // Different length
+		}
+		df := FromColumns(columns)
+		_, err := df.Collect()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "same length")
+	})
+}

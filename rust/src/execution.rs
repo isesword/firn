@@ -163,6 +163,7 @@ fn dispatch_dataframe_operation(
             let input_context = handle.get_context_type().unwrap_or(ContextType::DataFrame);
             (dispatch_join(handle, context), input_context)
         }
+        OpCode::FromMemory => (dispatch_from_memory(context), ContextType::DataFrame),
         _ => (
             FfiResult::error(ERROR_POLARS_OPERATION, "Unsupported DataFrame operation"),
             handle.get_context_type().unwrap_or(ContextType::DataFrame),

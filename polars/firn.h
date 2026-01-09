@@ -209,6 +209,26 @@ typedef struct {
     size_t error_frame;
 } FfiResult;
 
+// FromMemory structures for creating DataFrames from memory
+typedef struct {
+    uint8_t value_type;  // 0=int64, 1=float64, 2=string, 3=bool, 4=null
+    int64_t int_value;
+    double float_value;
+    RawStr string_value;
+    bool bool_value;
+} ColumnValue;
+
+typedef struct {
+    RawStr name;
+    ColumnValue* values;
+    size_t len;
+} ColumnData;
+
+typedef struct {
+    ColumnData* columns;
+    size_t column_count;
+} FromMemoryArgs;
+
 // Core FFI functions - these are the only functions called from Go
 FfiResult execute_operations(PolarsHandle handle, const Operation* operations, size_t count);
 int release_dataframe(uintptr_t handle);
