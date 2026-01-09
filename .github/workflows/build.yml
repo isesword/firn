@@ -149,8 +149,8 @@ jobs:
         if: runner.os != 'Windows'
         run: ./scripts/build_rust.sh
 
-      # - name: Run Go tests (polars)
-      #   run: go test ./polars -v
+      - name: Run Go tests (polars)
+        run: go test ./polars -v -run="^TestEsword"
 
       - name: Package artifacts
         run: |

@@ -4,7 +4,7 @@ package polars
 
 /*
 #cgo CFLAGS: -I.
-#cgo LDFLAGS: -lfirn
+#cgo LDFLAGS: -L${SRCDIR}/../lib -lfirn
 #include "firn.h"
 */
 import "C"
