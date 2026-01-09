@@ -149,10 +149,13 @@ jobs:
         if: runner.os != 'Windows'
         run: ./scripts/build_rust.sh
 
+      # - name: Run Go tests (polars)
+      #   run: |
+      #     export LD_LIBRARY_PATH="${PWD}/lib:${LD_LIBRARY_PATH:-}"
+      #     go test ./polars -v -run="^TestEsword"
+
       - name: Run Go tests (polars)
-        run: |
-          export LD_LIBRARY_PATH="${PWD}/lib:${LD_LIBRARY_PATH:-}"
-          go test ./polars -v -run="^TestEsword"
+        run: go test ./polars -v -run="^TestEsword"
 
       - name: Package artifacts
         run: |
